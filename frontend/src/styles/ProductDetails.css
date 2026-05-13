@@ -1,0 +1,206 @@
+/* --- CONTENEUR PRINCIPAL --- */
+.product-detail-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+  min-height: 80vh;
+}
+
+/* --- BOUTON RETOUR --- */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: transform 0.2s;
+}
+
+.back-btn:hover {
+  transform: translateX(-5px);
+}
+
+/* --- GRILLE PRINCIPALE (IMAGE À GAUCHE, INFOS À DROITE) --- */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Force deux colonnes égales */
+  gap: 50px;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  align-items: start; /* Garde les infos en haut */
+}
+
+/* --- SECTION IMAGE (LIMITATION DE TAILLE) --- */
+.detail-image-section {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #f1f5f9;
+}
+
+.detail-image-section img {
+  max-width: 100%;
+  max-height: 450px; /* ✨ INDISPENSABLE : empêche l'image d'être trop grande */
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.detail-image-section img:hover {
+  transform: scale(1.02);
+}
+
+/* --- SECTION INFOS --- */
+.detail-info-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detail-info-section h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 10px 0;
+  line-height: 1.2;
+}
+
+.category-tag {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 15px;
+}
+
+.price-tag {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1e293b;
+  margin-bottom: 25px;
+}
+
+/* --- FICHE TECHNIQUE --- */
+.tech-specs {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 4px solid #6366f1;
+  margin-bottom: 25px;
+}
+
+.tech-specs h3 {
+  font-size: 1rem;
+  margin-bottom: 15px;
+  color: #1e293b;
+}
+
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.spec-item strong {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.spec-item span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* --- DESCRIPTION --- */
+.description-section h3 {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.description-section p {
+  color: #475569;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* --- ACTIONS ET STOCK --- */
+.action-footer {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.stock {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.stock.in { background: #dcfce7; color: #15803d; }
+.stock.out { background: #fee2e2; color: #b91c1c; }
+
+.add-btn-main {
+  width: 100%;
+  padding: 16px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: background 0.3s;
+}
+
+.add-btn-main:hover {
+  background: #6366f1;
+}
+
+.add-btn-main:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  
+  .detail-image-section img {
+    max-height: 300px;
+  }
+}

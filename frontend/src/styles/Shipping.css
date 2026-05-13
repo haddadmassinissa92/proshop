@@ -1,0 +1,55 @@
+.shipping-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.checkout-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.step { color: #94a3b8; font-weight: bold; }
+.step.active { color: #6366f1; }
+.step-line { flex: 1; height: 2px; background: #e2e8f0; max-width: 50px; }
+
+.shipping-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.shipping-header { text-align: center; margin-bottom: 30px; }
+.shipping-header h1 { font-size: 1.8rem; color: #1e293b; margin: 10px 0; }
+.shipping-header p { color: #64748b; font-size: 0.9rem; }
+.title-icon { font-size: 2.5rem; color: #6366f1; }
+
+.shipping-form .input-group { margin-bottom: 20px; }
+.shipping-form label { display: flex; align-items: center; gap: 8px; font-weight: bold; margin-bottom: 8px; color: #1e293b; }
+.shipping-form input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+.btn-shipping {
+  width: 100%;
+  padding: 15px;
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.btn-shipping:hover { background: #6366f1; }

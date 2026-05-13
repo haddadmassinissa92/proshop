@@ -1,0 +1,93 @@
+/* Conteneur principal */
+.my-orders-container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+  min-height: 70vh;
+}
+
+.my-orders-container h1 {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #1e293b;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+}
+
+/* Style du tableau */
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.orders-table th {
+  background: #f8fafc;
+  color: #64748b;
+  text-align: left;
+  padding: 15px 20px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orders-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+/* ID de commande en style "code" */
+.order-id-txt {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  color: #6366f1;
+}
+
+/* Badges de statut */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-pill.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-pill.delivered {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Hover sur les lignes */
+.orders-table tr:hover td {
+  background-color: #fcfdfe;
+}
+
+/* Message si vide */
+.empty-orders-msg {
+  text-align: center;
+  padding: 50px;
+  background: white;
+  border-radius: 12px;
+  color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .orders-table {
+    display: block;
+    overflow-x: auto;
+  }
+}

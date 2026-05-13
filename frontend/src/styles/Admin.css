@@ -1,0 +1,258 @@
+.admin-container { 
+  padding: 40px; 
+  max-width: 1200px; 
+  margin: 0 auto; 
+}
+
+.admin-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 30px; 
+}
+
+.btn-add-product { 
+  background: #6366f1; 
+  color: white; 
+  padding: 10px 20px; 
+  border-radius: 6px; 
+  border: none; 
+  cursor: pointer; 
+}
+
+
+.admin-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  background: white; 
+  border-radius: 8px; 
+  margin: 30px 0;
+  overflow: hidden; 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+}
+
+.admin-table th, .admin-table td { 
+  padding: 15px; 
+  text-align: left; 
+  border-bottom: 1px solid #eee; 
+}
+
+.admin-table th { 
+  background: #f8fafc; 
+  font-weight: bold; 
+}
+
+.btn-edit { 
+  color: #6366f1; 
+  background: none; 
+  border: none; 
+  font-size: 1.2rem; 
+  cursor: pointer; 
+  margin-right: 10px; 
+}
+
+.btn-delete { 
+  color: #ef4444; 
+  background: none; 
+  border: none; 
+  font-size: 1.2rem; 
+  cursor: pointer; 
+}
+
+/* Styles pour admin modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 4000;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.modal-header h1 { text-align: center;}
+
+.modal-header button {
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  background: none;
+  color: #ef4444;
+  border: 1.3px solid #ef4444;
+  border-radius: 50%;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 95%;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.modal-content input, .modal-content select, .modal-content textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.modal-content textarea {
+  height: 160px;
+  resize: none;
+}
+
+.input-group textarea {
+  height: 66px;
+}
+
+.btn-save {
+  width: 100%;
+  background: #6366f1;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.upload-container {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.custom-file-upload {
+  border: 1px dashed #6366f1;
+  display: inline-block;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 8px;
+  color: #6366f1;
+  font-weight: bold;
+  background: #f8fafc;
+}
+
+.image-preview-small {
+  width: 50px;
+  height: 50px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+/* Styles de la page Dashboard */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 40px 0px;
+}
+
+.stat-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-icon.products { background: #e0e7ff; color: #6366f1; }
+.stat-icon.stock { background: #fef3c7; color: #d97706; }
+.stat-icon.value { background: #dcfce7; color: #16a34a; }
+
+.stat-info h3 { font-size: 0.9rem; color: #64748b; margin-bottom: 5px; }
+.stat-info p { font-size: 1.5rem; font-weight: 800; color: #1e293b; }
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 1fr; /* You can add more charts later */
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.chart-box {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  min-height: 400px; 
+  display: flex;
+  flex-direction: column;
+}
+
+
+.chart-box h3 {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+
+.btn-action-card { 
+  background: #6366f1; 
+  color: white; 
+  padding: 10px 20px; 
+  border-radius: 6px; 
+  border: none; 
+  cursor: pointer; 
+}
+
+
+/* Admin Orders page */
+.badge {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge.success { background: #dcfce7; color: #15803d; }
+.badge.danger { background: #fee2e2; color: #b91c1c; }
+.badge.warning { background: #fef3c7; color: #d97706; }
+
+.btn-deliver {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-deliver:hover { background: #059669; }
+
+.order-id { font-family: monospace; color: #64748b; }

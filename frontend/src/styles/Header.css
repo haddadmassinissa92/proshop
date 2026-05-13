@@ -1,0 +1,244 @@
+/* src/styles/Header.css */
+
+/* --- Configuration global --- */
+.main-header {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  padding: 12px 0;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.navbar {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* --- LOGO --- */
+.logo a {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #6366f1;
+  text-decoration: none;
+  letter-spacing: -1px;
+}
+
+/* --- BARRE DE RECHERCHE --- */
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #2d2d2d;
+  border-radius: 8px;
+  border: 1.4px solid #444;
+  padding: 2px 5px 2px 8px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 5px;
+  outline: none;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.search-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+/* --- ACTIONS Droite depend de l'utilisateur --- */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Boutons si déconnecté */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.login-btn {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.register-btn {
+  background-color: #6366f1;
+  color: white !important;
+  padding: 9px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.register-btn:hover {
+  background-color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* Panier */
+.cart-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.cart-icon {
+  font-size: 1.4rem;
+  color: #ffffff;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 50%;
+  border: 2px solid #1a1a1a;
+}
+
+/* --- PROFIL & Drop-menu --- */
+.user-profile {
+  position: relative;
+}
+
+.avatar-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 8px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.avatar-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.arrow {
+  color: #9ca3af;
+  font-size: 1.1em;
+  transition: transform 0.3s;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Le menu déroulant */
+.dropdown-menu {
+  position: absolute;
+  top: 64px;
+  right: 0;
+  background: white;
+  color: #1f2937;
+  width: 240px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.badge-role {
+  background: #d1d5db;
+  color: #374151;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.dropdown-menu strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.dropdown-menu p {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.dropdown-menu hr {
+  border: 0;
+  border-top: 1px solid #f3f4f6;
+  margin: 10px 0;
+}
+
+.dropdown-menu a {
+  color: #4b5563;
+  text-decoration: none;
+  padding: 10px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+}
+
+.dropdown-menu a:hover {
+  background: #f9fafb;
+  color: #6366f1;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  padding: 10px;
+  text-align: left;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+}
