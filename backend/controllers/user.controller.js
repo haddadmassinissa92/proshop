@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken') // Pour la génération de tokens JWT pour l
 
 // Importation du modèle de données utilisateur pour interagir avec la base de données MongoDB.
 const User = require('../models/user.model') 
+const { uploadImageBuffer } = require('../utils/cloudinary')
 
 
 const signup = async (req, res) => {
@@ -43,8 +44,9 @@ const signup = async (req, res) => {
         // On recupere les donnes envoyer par le frontend.
         const { firstName, lastName, username, email, password, bio } = req.body
 
-        // On recupere l'avatar de req.file
-        const avatarPath = req.file ? `/images/${req.file.filename}` : '';
+        // On recupere l'avatar de req.file et on l'envoie vers Cloudinary
+        // (stockage permanent, contrairement au disque du serveur).
+        const avatarPath = req.file ? await uploadImageBuffer(req.file.buffer, 'proshop/avatars') : '';
 
         // Vérifier si l'utilisateur existe déjà avec le même email ou username
         const userExists = await User.findOne({ $or: [{ email }, { username }] })
@@ -76,11 +78,10 @@ const signup = async (req, res) => {
         // Renvoyer le résultat
         res.status(201).json({ message: 'User was created successfully!' })
     } catch (error) {
-        console.log("DÉTAIL DE L'ERREUR SIGNUP :", error);
         // Afficher l'erreur dans la console pour le développement.
         // Renvoyer une réponse avec un message d'erreur et un status 500 pour 
         // indiquer une erreur serveur.
-        console.error(error)
+        console.error("Erreur signup:", error)
         res.status(500).json({ message: 'Error while inscription!' })
     }
 }
@@ -288,10 +289,10 @@ const updateUserProfile = async (req, res) => {
             user.email = req.body.email || user.email
             user.bio = req.body.bio || user.bio
 
-            // Si une nouvelle image a etais uploader 
+            // Si une nouvelle image a etais uploader (envoyée vers Cloudinary)
             // On la garde, sinon, on laisse l'ancienne.
             if (req.file) {
-                user.avatar = `/images/${req.file.filename}`;
+                user.avatar = await uploadImageBuffer(req.file.buffer, 'proshop/avatars');
             }
 
             // Enregistrer les modifications dans la base de données.

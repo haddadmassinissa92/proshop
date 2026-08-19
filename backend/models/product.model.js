@@ -97,12 +97,26 @@ const productSchema = new mongoose.Schema({
         required: true 
     }],
     
-    // Catégorie du produit, avec une validation pour n'accepter que les catégories définies.
+    // Catégorie du produit — référence vers le modèle Category (permet une gestion
+    // dynamique des catégories, au lieu d'une liste figée dans le code).
     category: { 
-        type: String, 
-        required: true,
-        enum: ['ordinateurs', 'composants', 'peripheriques', 'reseaux', 'stockage'],
-        lowercase: true 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true 
+    },
+
+    // Administrateur qui a créé le produit (traçabilité).
+    // NB : pas de "required: true" ici volontairement. Mongoose revalide TOUT
+    // le document à chaque .save() (donc aussi lors d'une simple mise à jour
+    // de prix/stock). Si ce champ était obligatoire et qu'un produit existant
+    // en base ne l'avait pas (ex: données créées avant l'ajout de ce champ),
+    // la moindre modification de ce produit échouait avec une erreur de
+    // validation ("Product validation failed") sans rapport avec le champ
+    // réellement modifié. On le garde donc optionnel pour la traçabilité,
+    // sans bloquer les mises à jour sur d'anciens documents.
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
     },
     
     // Stock disponible pour le produit, avec une valeur par défaut de 0.

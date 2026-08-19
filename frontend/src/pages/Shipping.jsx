@@ -127,7 +127,7 @@ const Shipping = () => {
           </div>
 
           {/* Bouton de soumission pour continuer vers le récapitulatif */}
-          <button type="submit" className="btn-shipping" onClick={submitHandler}>
+          <button type="submit" className="btn-shipping">
             Continuer vers le récapitulatif
           </button>
         </form>

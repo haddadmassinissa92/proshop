@@ -18,11 +18,14 @@ import {
 
 // Importation des styles CSS pour la page d'accueil
 import '../styles/Home.css';
+import { API_URL, getMediaUrl } from '../api/api';
 
 const Home = () => {
 
   // État pour stocker la liste des produits affichés
+  // État pour stocker la liste des catégories (pour le filtre)
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   // useDispatch pour envoyer des actions au store Redux
   // useNavigate pour la redirection programmatique
@@ -31,17 +34,43 @@ const Home = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Extraction du paramètre de recherche depuis l'URL (?search=...)
+  // Extraction des paramètres depuis l'URL (?search=...&category=...)
   const searchParams = new URLSearchParams(location.search)
   const search = searchParams.get('search') || ''
+  const categoryFilter = searchParams.get('category') || ''
+
+  // Chargement des catégories une seule fois, pour le sélecteur de filtre
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get(`${API_URL}/api/categories`);
+        setCategories(data);
+      } catch (error) {
+        console.error("Impossible de charger les catégories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const { data } = await axios.get(`http://localhost:3000/api/products?search=${search}`)
+      const params = new URLSearchParams();
+      if (search) params.set('search', search);
+      if (categoryFilter) params.set('category', categoryFilter);
+      const { data } = await axios.get(`${API_URL}/api/products?${params.toString()}`)
       setProducts(data);
     };
     fetchProducts();
-  }, [search]);
+  }, [search, categoryFilter]);
+
+  // Fonction pour changer la catégorie sélectionnée dans le filtre,
+  // tout en conservant une éventuelle recherche déjà en cours.
+  const handleCategoryChange = (e) => {
+    const params = new URLSearchParams();
+    if (search) params.set('search', search);
+    if (e.target.value) params.set('category', e.target.value);
+    navigate(`/?${params.toString()}`);
+  };
 
   // Fonction utilitaire pour tronquer le texte à une longueur donnée
   const truncateText = (text, limit) => {
@@ -53,10 +82,26 @@ const Home = () => {
     <div className="home-container">
       <h2 className="main-title">Latest IT Hardware</h2>
 
-      {/* Message affiché si aucune recherche ne correspond */}
-      {search && products.length === 0 && (
+      {/* Filtre par catégorie */}
+      <div className="category-filter" style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px' }}>
+        <label htmlFor="category-select" style={{ fontWeight: 'bold', color: '#334155' }}>Catégorie :</label>
+        <select id="category-select" value={categoryFilter} onChange={handleCategoryChange}
+          style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #ddd' }}>
+          <option value="">Toutes les catégories</option>
+          {categories.map(cat => (
+            <option key={cat._id} value={cat._id}>{cat.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Message affiché si aucun produit ne correspond aux filtres */}
+      {(search || categoryFilter) && products.length === 0 && (
         <div className="no-products">
-          <p>Aucun produit ne correspond à votre recherche "<strong>{search}</strong>".</p>
+          <p>
+            {search
+              ? <>Aucun produit ne correspond à votre recherche "<strong>{search}</strong>".</>
+              : "Aucun produit dans cette catégorie pour le moment."}
+          </p>
           <button onClick={() => navigate('/')} className="btn-clear-search">
             Voir tous les produits
           </button>
@@ -77,14 +122,17 @@ const Home = () => {
               <div className="card-header">
                 <span className="brand-tag">{product.brand}</span>
                 <h3 className="product-name">{product.name}</h3>
-                <span className="category-text">{product.category}</span>
+                {/* product.category est maintenant peuplé par le backend
+                    (populate('category', 'name slug')) : on affiche son nom
+                    au lieu de l'ObjectId brut affiché auparavant. */}
+                <span className="category-text">{product.category?.name || ''}</span>
               </div>
 
               {/* Corps de la carte : image et description */}
               <div className="card-body">
                 <img 
                   src={product.images && product.images.length > 0 
-                    ? `http://localhost:3000${product.images[0].replace('/public', '')}` 
+                    ? getMediaUrl(product.images[0]) 
                     : 'https://placeholder.com'} 
                   alt={product.name} 
                   className="product-img" 

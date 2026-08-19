@@ -1,2 +1,24 @@
+# Dépendances
 node_modules/
+
+# Variables d'environnement (secrets - JAMAIS commit)
 .env
+.env.local
+.env.*.local
+
+# Images uploadées par les utilisateurs (produits, catégories, avatars) —
+# ne pas versionner du contenu utilisateur ; à terme, ce dossier doit de
+# toute façon être remplacé par un stockage externe (Cloudinary, S3...)
+# qui persiste entre les redéploiements (voir README / conversation).
+public/images/*
+!public/images/.gitkeep
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Fichiers système
+.DS_Store
+Thumbs.db

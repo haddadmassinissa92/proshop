@@ -53,3 +53,14 @@
 }
 
 .btn-shipping:hover { background: #6366f1; }
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 600px) {
+  .shipping-container { margin: 20px auto; padding: 0 15px; }
+  .shipping-card { padding: 24px 20px; }
+  .shipping-header h1 { font-size: 1.4rem; }
+}
+
+@media (max-width: 420px) {
+  .form-row { grid-template-columns: 1fr; }
+}

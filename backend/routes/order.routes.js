@@ -25,9 +25,12 @@ router.post('/', protect, addOrderItems);
 router.get('/user', protect, getUserOrders) // recuperer les commandes de l'utilisateur
 router.get('/admin', protect, admin, getAllOrders) // route pour recuperer tous le commandes de l'admin
 router.get('/:id', protect, getOrderById);
-router.put('/:id/pay', protect, updateOrderToPaid)
 
 // ROUTES proteger par l'authentification et le role doit etre admin
+// (marquer payé/livré sont des actions de gestion : seul un admin doit pouvoir
+// les déclencher, jamais le client — sinon n'importe quel utilisateur connecté
+// pourrait marquer sa propre commande, ou une autre, comme payée.)
+router.put('/:id/pay', protect, admin, updateOrderToPaid)
 router.put('/:id/deliver', protect, admin, updateOrderToDelivered)
 
 

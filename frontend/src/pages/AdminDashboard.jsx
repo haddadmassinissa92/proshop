@@ -7,10 +7,11 @@ import { useNavigate } from 'react-router-dom';
 
 // Import des icônes FontAwesome et Recharts
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { FaLaptop, FaUsers, FaBoxOpen, FaDollarSign, FaShoppingCart } from 'react-icons/fa';
+import { FaLaptop, FaBoxOpen, FaDollarSign, FaShoppingCart } from 'react-icons/fa';
 
 // Import des styles css
 import '../styles/Admin.css';
+import { API_URL } from '../api/api';
 
 const AdminDashboard = () => {
 
@@ -25,37 +26,25 @@ const AdminDashboard = () => {
 
 
   useEffect(() => {
-    // Récupération du token depuis le localStorage
-    const token = localStorage.getItem('token');
-
-    // Vérification si le token est valide
-    // (pas null, pas undefined, pas "null", pas "undefined")
-    const isValidToken = token && token !== "null" && token !== "undefined"
-
-    // const config = {
-    //   headers: {
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    // };
-
-    
     const fetchDashboardData = async () => {
-
       try {
         // Récupération du token depuis le localStorage
-        const token = localStorage.getItem('userToken'); 
+        const token = localStorage.getItem('userToken');
 
         // Récupération des données des produits depuis l'API publique
-        const { data: products } = await axios.get('http://localhost:3000/api/products');
+        const { data: products } = await axios.get(`${API_URL}/api/products`);
 
         // Calcul du stock total en additionnant countInStock de chaque produit
          // Calcul de la valeur totale du stock (prix * quantité en stock pour chaque produit)
         const totalStock = products.reduce((acc, item) => acc + item.countInStock, 0);
         const totalValue = products.reduce((acc, item) => acc + (item.price * item.countInStock), 0);
 
-        // Comptage du nombre de produits par catégorie pour le graphique
+        // Comptage du nombre de produits par catégorie pour le graphique.
+        // product.category est maintenant peuplé par le backend (objet {_id, name}),
+        // on regroupe donc par son nom plutôt que par l'ObjectId brut.
         const categories = products.reduce((acc, item) => {
-          acc[item.category] = (acc[item.category] || 0) + 1;
+          const catName = item.category?.name || 'Sans catégorie';
+          acc[catName] = (acc[catName] || 0) + 1;
           return acc;
         }, {});
 
@@ -76,6 +65,7 @@ const AdminDashboard = () => {
         setChartData(formattedData)
 
         // Vérification si le token est valide
+        // (pas null, pas undefined, pas "null", pas "undefined")
         const isValidToken = token && token !== "null" && token !== "undefined";
 
         // Si le token est valide, récupération des commandes admin
@@ -85,9 +75,7 @@ const AdminDashboard = () => {
             const config = { headers: { Authorization: `Bearer ${token}` } }
 
             // Récupération des commandes depuis l'API admin
-            const { data: orderData } = await axios.get('http://localhost:3000/api/orders/admin', config)
-
-            console.log("RÉPONSE SERVEUR :", orderData);
+            const { data: orderData } = await axios.get(`${API_URL}/api/orders/admin`, config)
 
             // Mise à jour des commandes (limitées aux 5 dernières)
             setOrders(orderData.orders ? orderData.orders.slice(0, 5) : []);
@@ -218,10 +206,13 @@ const AdminDashboard = () => {
         </table>
       </div>
 
-      {/* Boutton Lien rapide vers la gestion du stock */}
-      <div className="quick-actions">
-        <button className="btn-action-card" onClick={() => window.location.href='/admin/products'}>
+      {/* Boutons de liens rapides */}
+      <div className="quick-actions" style={{ display: 'flex', gap: '15px' }}>
+        <button className="btn-action-card" onClick={() => navigate('/admin/products')}>
             Aller À La Gestion Du Stock
+        </button>
+        <button className="btn-action-card" onClick={() => navigate('/admin/categories')}>
+            Gérer Les Catégories
         </button>
       </div>
     </div>

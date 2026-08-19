@@ -2,6 +2,7 @@
 
 // Importation des dépendances nécessaires pour la création des routes utilisateur.
 const express = require('express')
+const rateLimit = require('express-rate-limit')
 
 // Création du routeur Express pour gérer les routes liées aux utilisateurs.
 const router = express.Router()
@@ -19,6 +20,16 @@ const {
 // Importation du middleware d'authentification et d'upload d'images.
 const auth = require('../middlewares/auth.middleware')
 const upload = require('../middlewares/multer.config');
+
+// Limite stricte sur les routes sensibles (login/signup) pour éviter le brute-force :
+// 10 tentatives par IP toutes les 15 minutes.
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { message: "Trop de tentatives. Réessaie dans 15 minutes." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 
 /**
@@ -39,12 +50,12 @@ const upload = require('../middlewares/multer.config');
  */
 
 // ROUTES PUBLIQUES :
-router.post('/signup', upload,  signup) // Route pour l'inscription de l'utilisateur.
-router.post('/login', login)  // Route pour la connexion de l'utilisateur.
+router.post('/signup', authLimiter, upload,  signup) // Route pour l'inscription de l'utilisateur.
+router.post('/login', authLimiter, login)  // Route pour la connexion de l'utilisateur.
 router.post('/logout', logout) // Route pour la deconnexion de l'utilisateur.
 
 // ROUTES PROTEGEES (authentification requise) :
-router.get('/profile', auth, upload, getUserProfile)
+router.get('/profile', auth, getUserProfile)
 router.put('/edit-profile/:id', auth, upload, updateUserProfile) // Route pour mettre à jour le profil de l'utilisateur.
 router.delete('/delete-profile/:id', auth, deleteUserProfile) // Route pour supprimer le profil de l'utilisateur.
 

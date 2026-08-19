@@ -6,6 +6,7 @@ import { logout } from '../store/authSlice';
 import { FaTimes, FaCamera } from 'react-icons/fa';
 
 import '../styles/Profile.css'
+import { API_URL, getMediaUrl } from '../api/api';
 
 const EditProfileModal = ({ user, onClose }) => {
 
@@ -28,7 +29,9 @@ const EditProfileModal = ({ user, onClose }) => {
 
     // Fonction pour créer l'avatar à partir des initiales de l'utilisateur.
   const getAvatarSrc = () => {
-    if (user && user.avatar) return  `http://localhost:3000${user.avatar}`;
+    // getMediaUrl gère à la fois les URLs Cloudinary (déjà complètes) et
+    // d'anciens chemins locaux relatifs.
+    if (user && user.avatar) return getMediaUrl(user.avatar);
     if (user) {
       // Initials basées sur le prénom et le nom pour un meilleur rendu de l'API
       const fullName = `${user.firstName} ${user.lastName}`;
@@ -63,7 +66,7 @@ const EditProfileModal = ({ user, onClose }) => {
                     'Content-Type': 'multipart/form-data' 
                 } 
             };
-            await axios.put(`http://localhost:3000/api/auth/edit-profile/${user.id}`, data, config);
+            await axios.put(`${API_URL}/api/auth/edit-profile/${user.id}`, data, config);
             
             alert("Profile updated! Please log in again to see all changes.");
 

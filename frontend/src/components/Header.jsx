@@ -23,10 +23,12 @@ import {
     FaLaptop,
     FaClipboardList,
     FaChartSimple,
+    FaTags,
 } from "react-icons/fa6";
 
 // Import des styles CSS pour le header
 import '../styles/Header.css';
+import { getMediaUrl } from '../api/api';
 
 // Composant Header qui reçoit des props pour gérer la fermeture/ouverture du panier
 const Header = ({ onCartClick }) => {
@@ -50,8 +52,10 @@ const Header = ({ onCartClick }) => {
 
     // Fonction pour créer l'avatar à partir des initiales de l'utilisateur
     const getAvatarSrc = () => {
-        // Si l'utilisateur a uploadé une photo, on utilise celle-ci
-        if (user && user.avatar) return  `http://localhost:3000${user.avatar}`
+        // Si l'utilisateur a uploadé une photo, on utilise celle-ci.
+        // getMediaUrl gère à la fois les URLs Cloudinary (déjà complètes,
+        // renvoyées telles quelles) et d'anciens chemins locaux relatifs.
+        if (user && user.avatar) return getMediaUrl(user.avatar)
 
         // Si le profil existe et que l'utilisateur n'a pas uploadé d'image,
         // on crée un avatar avec ses initiales
@@ -170,6 +174,9 @@ const Header = ({ onCartClick }) => {
                                         </Link>
                                         <Link to="/admin/products" onClick={() => setShowMenu(false)}>
                                             <FaLaptop /> Gérer les produits
+                                        </Link>
+                                        <Link to="/admin/categories" onClick={() => setShowMenu(false)}>
+                                            <FaTags /> Gérer les catégories
                                         </Link>
                                         <Link to="/admin/orders" onClick={() => setShowMenu(false)}>
                                             <FaClipboardList /> Toutes les commandes

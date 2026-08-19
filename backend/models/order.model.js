@@ -94,8 +94,17 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: { 
         type: String, 
         required: true, 
-        enum: ['Paiement à la livraison', 'Carte CIB', 'Virement'],
+        enum: ['Paiement à la livraison', 'Carte CIB/Edahabia'],
         default: 'Paiement à la livraison' 
+    },
+
+    // Détails renvoyés par la passerelle SATIM une fois le paiement confirmé
+    // — utile pour la traçabilité et le support client. Reste vide pour un
+    // paiement à la livraison.
+    paymentResult: {
+        id: { type: String },          // ID de transaction côté SATIM
+        status: { type: String },      // statut renvoyé par SATIM
+        update_time: { type: String },
     },
     
     // Montant de la TVA

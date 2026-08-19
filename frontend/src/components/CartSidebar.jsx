@@ -21,6 +21,7 @@ import {
 
 // Import du fichier CSS pour les styles du composant
 import '../styles/Cart.css';
+import { API_URL, getMediaUrl } from '../api/api';
 
 // Définition du composant CartSidebar qui prend deux props :
 // isOpen (booléen pour savoir si le panier est ouvert) 
@@ -85,7 +86,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 {/* Image du produit, avec une URL construite dynamiquement ou un placeholder */}
                 <img 
                   src={item.images && item.images.length > 0 
-                    ? `http://localhost:3000${(Array.isArray(item.images) ? item.images[0] : item.images).replace('/public', '')}` 
+                    ? getMediaUrl((Array.isArray(item.images) ? item.images[0] : item.images)) 
                     : 'https://placeholder.com'} 
                   alt={item.name} 
                 />

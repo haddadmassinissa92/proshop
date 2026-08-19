@@ -3,6 +3,8 @@
 // Importation des modèles nécessaires pour les opérations sur les commandes et produits
 const Order = require('../models/order.model');
 const Product = require('../models/product.model');
+const User = require('../models/user.model');
+const { sendOrderConfirmationEmail } = require('../utils/email');
 
 
 const addOrderItems = async (req, res) => {
@@ -48,6 +50,30 @@ const addOrderItems = async (req, res) => {
             return res.status(400).json({ message: 'Aucun article dans la commande' });
         }
 
+        // Vérification du stock disponible AVANT de créer la commande —
+        // sans ça, on pouvait commander plus d'articles qu'il n'y en a en stock
+        // et countInStock devenait négatif.
+        //
+        // NB : chaque article doit avoir un champ "product" (l'ObjectId du produit) —
+        // c'est le nom attendu par orderItemSchema (voir models/order.model.js).
+        // Avant, le frontend envoyait seulement "_id" et ce champ "product" n'était
+        // jamais rempli, ce qui faisait échouer la validation Mongoose au moment du
+        // order.save() (le champ product est "required").
+        for (const item of orderItems) {
+            if (!item.product) {
+                return res.status(400).json({ message: 'Chaque article doit avoir un identifiant de produit valide.' });
+            }
+            const product = await Product.findById(item.product);
+            if (!product) {
+                return res.status(404).json({ message: `Produit introuvable (${item.product}).` });
+            }
+            if (product.countInStock < item.quantity) {
+                return res.status(400).json({ 
+                    message: `Stock insuffisant pour "${product.name}" (${product.countInStock} disponible(s), ${item.quantity} demandé(s)).` 
+                });
+            }
+        }
+
         // Création d'une nouvelle instance de commande avec les données fournies
         const order = new Order({
             orderItems,
@@ -63,16 +89,41 @@ const addOrderItems = async (req, res) => {
         // Sauvegarde de la commande dans la base de données
         const createdOrder = await order.save();
 
-        // MISE À JOUR DU STOCK (Optionnel mais recommandé)
+        // MISE À JOUR DU STOCK
         // Réduction de la quantité en stock pour chaque article commandé
         for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item._id, {
+            await Product.findByIdAndUpdate(item.product, {
                 $inc: { countInStock: -item.quantity } // Décrémente le stock de la quantité commandée
             });
         }
 
         // Réponse avec la commande créée et un statut 201 (Created)
         res.status(201).json(createdOrder);
+
+        // Email de confirmation — uniquement pour "Paiement à la livraison",
+        // qui est confirmé immédiatement (pas d'étape de paiement en ligne
+        // à attendre). Pour la carte CIB/Edahabia, l'email est envoyé après
+        // confirmation réelle du paiement (voir payment.controller.js ->
+        // cibReturn), pas avant.
+        //
+        // Placé APRÈS res.status(201).json(...) et sans "await" : la réponse
+        // HTTP part immédiatement, sans attendre l'envoi de l'email (qui
+        // peut prendre une seconde ou deux) — le client n'a pas à patienter
+        // pour ça, et un email lent/en échec ne doit jamais faire échouer
+        // la commande elle-même.
+        if (paymentMethod === 'Paiement à la livraison') {
+            User.findById(req.user.id)
+                .then(user => {
+                    if (user) {
+                        sendOrderConfirmationEmail({
+                            to: user.email,
+                            userName: user.firstName,
+                            order: createdOrder,
+                        });
+                    }
+                })
+                .catch(err => console.error("[email] Impossible de récupérer l'utilisateur pour l'email de confirmation:", err.message));
+        }
 
     } catch (error) {
         // Gestion des erreurs avec un message et le détail de l'erreur
@@ -232,14 +283,21 @@ const getAllOrders = async (req, res) => {
 
 const updateOrderToPaid = async (req, res) => {
     /**
-     * Fonction pour marquer une commande comme payée.
+     * Fonction pour marquer une commande comme payée (réservée aux administrateurs).
+     *
+     * Pour le paiement par carte CIB/Edahabia, la commande est marquée payée
+     * AUTOMATIQUEMENT par le contrôleur dédié (voir controllers/payment.controller.js
+     * -> cibReturn, qui vérifie le vrai statut auprès de SATIM). Cette route-ci
+     * sert de confirmation MANUELLE pour "Paiement à la livraison" (l'admin
+     * confirme après avoir encaissé), ou en secours si jamais la vérification
+     * automatique CIB n'aboutissait pas.
      *
      * Étapes :
      * Tout d'abord essayer:
      *      1. Rechercher la commande par son ID.
      *
      * Si la commande existe:
-     *      2. Mettre à jour les champs de paiement (isPaid, paidAt, status, paymentResult).
+     *      2. Mettre à jour les champs de paiement (isPaid, paidAt, status).
      *      3. Enregistrer la commande mise à jour.
      *      4. Renvoyer la commande mise à jour.
      *
@@ -251,6 +309,7 @@ const updateOrderToPaid = async (req, res) => {
      *
      * @desc Mettre à jour une commande comme payée.
      * @route PUT /api/orders/:id/pay
+     * @access Administrateur authentifié
      */
 
     try {
@@ -263,14 +322,6 @@ const updateOrderToPaid = async (req, res) => {
             order.paidAt = Date.now(); // Date du paiement
             order.status = 'Confirmée'; // Changement du statut général
 
-            // Stockage des détails du paiement (pour paiements en ligne comme Stripe/PayPal)
-            order.paymentResult = {
-                id: req.body.id,
-                status: req.body.status,
-                update_time: req.body.update_time,
-                email_address: req.body.payer.email_address,
-            };
-
             // Sauvegarde de la commande mise à jour
             const updatedOrder = await order.save();
             res.json(updatedOrder);
@@ -280,7 +331,8 @@ const updateOrderToPaid = async (req, res) => {
         }
     } catch (error) {
         // Gestion des erreurs
-        res.status(500).json({ message: 'Erreur lors de la mise à jour du paiement' });
+        console.error("Erreur lors de la mise à jour du paiement:", error);
+        res.status(500).json({ message: 'Erreur lors de la mise à jour du paiement', error: error.message });
     }
 };
 

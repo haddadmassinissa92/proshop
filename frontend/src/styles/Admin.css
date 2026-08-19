@@ -42,6 +42,15 @@
   font-weight: bold; 
 }
 
+/* Lignes de tableau cliquables (ex: historique de commandes client) */
+.admin-table tr.clickable-row {
+  cursor: pointer;
+}
+
+.admin-table tr.clickable-row:hover td {
+  background-color: #f8fafc;
+}
+
 .btn-edit { 
   color: #6366f1; 
   background: none; 
@@ -256,3 +265,277 @@
 .btn-deliver:hover { background: #059669; }
 
 .order-id { font-family: monospace; color: #64748b; }
+
+/* ===== Page Catégories (AdminCategories.jsx) ===== */
+
+/* Grille de cartes catégories */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.category-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  position: relative;
+  transition: transform 0.15s;
+}
+
+.category-card:hover { transform: translateY(-2px); }
+
+/* Fine bande colorée en haut de la carte, couleur d'accent de la catégorie */
+.category-card-top-border {
+  height: 5px;
+  width: 100%;
+}
+
+.category-card-body {
+  padding: 28px 20px 22px;
+  text-align: center;
+}
+
+/* Boutons modifier/supprimer, en haut à droite de la carte */
+.category-card-actions {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+.category-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  color: #6366f1;
+}
+
+.category-action-btn.delete { color: #ef4444; }
+
+/* Badge rond avec l'icône de la catégorie, teinté avec sa couleur d'accent */
+.category-icon-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 1.7rem;
+}
+
+.category-card-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: #1e293b;
+}
+
+.category-card-desc {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 16px;
+  min-height: 2.6em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.category-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #eef2ff;
+  color: #6366f1;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+}
+
+/* Sélecteur d'icône dans le formulaire d'ajout/modification */
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  margin: 4px 0 8px;
+  display: block;
+}
+
+/* Sélecteur de couleur natif du navigateur (input type="color"), stylé en
+   petit rectangle comme un bouton, + aperçu de l'icône choisie à côté. */
+.color-picker-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.color-input-native {
+  width: 64px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  background: none;
+}
+
+.icon-preview-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Masqué par défaut (desktop) — inutile maintenant que le tableau se
+   transforme en cartes sur mobile plutôt que de défiler horizontalement,
+   gardé au cas où une page l'utilise encore. */
+.mobile-scroll-hint { display: none; }
+
+/* ===== RESPONSIVE MOBILE (toutes les pages admin) ===== */
+@media (max-width: 768px) {
+  .admin-container { padding: 20px 15px; }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .admin-header .btn-add-product { width: 100%; justify-content: center; display: flex; align-items: center; gap: 6px; }
+
+  /* --- TABLEAUX ADMIN -> CARTES EMPILÉES SUR MOBILE ---
+     Plutôt qu'un tableau qui déborde et qu'il faut faire défiler
+     horizontalement, chaque ligne <tr> devient une carte, et chaque
+     cellule <td> devient une ligne "étiquette : valeur" — l'étiquette
+     vient de l'attribut data-label posé sur chaque <td> dans le JSX
+     (AdminOrders.jsx, AdminProducts.jsx, MyOrders.jsx). Le défilement de
+     la page redevient purement vertical. */
+  .admin-table thead {
+    display: none; /* les en-têtes de colonnes n'ont plus de sens en cartes */
+  }
+
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-table {
+    background: none;
+    box-shadow: none;
+    margin: 20px 0;
+  }
+
+  .admin-table tr {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    padding: 6px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  .admin-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .admin-table td:last-child { border-bottom: none; }
+
+  /* L'étiquette de colonne, générée depuis data-label="..." posé sur le <td>. */
+  .admin-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #64748b;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Cellules avec du contenu qui ne tient pas bien sur une seule ligne
+     face à son étiquette (nom + email du client, image produit) : on les
+     empile en colonne à la place. "Actions" reste en ligne (voir plus
+     bas) — ses boutons (icônes ou courts) tiennent très bien côte à côte. */
+  .admin-table td[data-label="Client"],
+  .admin-table td[data-label="Image"] {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .admin-table td[data-label="Client"]::before,
+  .admin-table td[data-label="Image"]::before {
+    margin-bottom: 6px;
+  }
+
+  /* "Actions" : label à gauche, boutons groupés à droite sur la même
+     ligne. flex-wrap permet aux boutons de repasser à la ligne ENSEMBLE
+     (pas un par un) si jamais ils ne tiennent pas tous (ex: 3 boutons
+     texte sur la page des commandes admin). */
+  .admin-table td[data-label="Actions"] {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .admin-table td[data-label="Actions"] button {
+    margin: 0 0 0 8px;
+  }
+
+  /* Ligne "aucune donnée" (sans data-label) : pas d'étiquette à afficher, centrée normalement. */
+  .admin-table td:not([data-label]) {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .modal-content { padding: 20px; }
+
+  .stats-grid { margin: 24px 0; gap: 15px; }
+
+  .category-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+
+  .category-card-body { padding: 20px 14px 16px; }
+
+  .category-icon-badge { width: 52px; height: 52px; font-size: 1.4rem; }
+}
+
+/* En dessous de 480px, 2 colonnes rendent chaque carte catégorie trop
+   étroite : le nom et la description se compriment et cassent la mise en
+   page. Une seule colonne pleine largeur reste lisible (même logique que
+   la grille de produits sur la page d'accueil). */
+@media (max-width: 480px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Les paires de champs côte à côte dans les formulaires modaux (univers +
+     catégorie parente, prix + stock...) s'empilent sur les très petits écrans. */
+  .form-row { flex-direction: column; gap: 0; }
+  .form-row > * { margin-bottom: 10px; }
+}

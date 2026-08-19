@@ -12,6 +12,7 @@ import EditProfileModal from './EditProfileModal';
 
 // Import des styles spécifiques à la page profil
 import '../styles/Profile.css';
+import { getMediaUrl } from '../api/api';
 
 const Profile = () => {
   // Récupération des informations utilisateur depuis le state auth de Redux
@@ -23,8 +24,10 @@ const Profile = () => {
 
   // Fonction pour générer l'URL de l'avatar à afficher
   const getAvatarSrc = () => {
-    // Si l'utilisateur a un avatar custom, on l'utilise
-    if (user && user.avatar) return  `http://localhost:3000${user.avatar}`;
+    // Si l'utilisateur a un avatar custom, on l'utilise.
+    // getMediaUrl gère à la fois les URLs Cloudinary (déjà complètes) et
+    // d'anciens chemins locaux relatifs.
+    if (user && user.avatar) return getMediaUrl(user.avatar);
     
     if (user) {
       // Sinon on génère un avatar à partir des initiales du nom complet

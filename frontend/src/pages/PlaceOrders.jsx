@@ -1,7 +1,7 @@
 // src/pages/PlaceOrders.jsx
 
-// Import de React pour créer le composant
-import React from 'react';
+// Import de React et useState pour gérer le mode de paiement choisi
+import React, { useState } from 'react';
 
 // Import de useSelector pour accéder à l'état global du store Redux,
 // et useDispatch pour envoyer des actions au store
@@ -11,30 +11,47 @@ import { useSelector, useDispatch } from 'react-redux';
 // et de Link pour navigation React Router (liens connexion)
 import { useNavigate, Link } from 'react-router-dom';
 
-// Import d'axios pour faire des requêtes HTTP
+// Import d'axios pour l'appel direct à la route de paiement CIB/Edahabia
+// (qui ne passe pas par le slice Redux "order")
 import axios from 'axios';
 
+// Import de l'action asynchrone pour la création de commande via Redux
+import { createOrder } from '../store/orderSlice';
+import { clearCart } from '../store/cartSlice';
+
 // Import des icônes FontAwesome pour l'interface
-import { FaMapMarkerAlt, FaCreditCard, FaBoxOpen } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaCreditCard, FaBoxOpen, FaTruck } from 'react-icons/fa';
 
 // Import du fichier CSS pour les styles de la page
 import '../styles/PlaceOrder.css';
+import { API_URL, getMediaUrl } from '../api/api';
+
+// Les 2 modes de paiement disponibles. Les valeurs correspondent exactement
+// à l'enum "paymentMethod" du modèle Order côté backend.
+const PAYMENT_METHODS = [
+  { value: 'Paiement à la livraison', label: 'Paiement à la livraison', icon: <FaTruck /> },
+  { value: 'Carte CIB/Edahabia', label: 'Carte CIB / Edahabia', icon: <FaCreditCard /> },
+];
 
 // Définition du composant PlaceOrder pour la page 
 // de confirmation de commande
 const PlaceOrder = () => {
 
-  // useDispatch pour envoyer des actions Redux
-  // useNavigate pour la navigation programmatique (redirection)
-  // const dispatch = useDispatch()
+  // Configuration de useDispatch et useNavigate pour Redux et le routage
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   // Récupération de l'état du panier depuis Redux
   // Récupération de l'utilisateur et du token d'authentification depuis Redux
   const cart = useSelector((state) => state.cart);
   const cartItems = cart.cartItems || [];
-  console.log(cart.cartItems);
   const { user, token } = useSelector((state) => state.auth);
+  const orderState = useSelector((state) => state.order || {});
+
+  // Mode de paiement sélectionné par le client
+  const [paymentMethod, setPaymentMethod] = useState('Paiement à la livraison');
+  const [paymentError, setPaymentError] = useState(null);
+  const [redirecting, setRedirecting] = useState(false);
 
   // Récupération de l'adresse d'expédition stockée dans le localStorage depuis l'étape précédente
   // et le subtotal
@@ -47,48 +64,57 @@ const PlaceOrder = () => {
     navigate('/shipping');
   }
 
-  // Fonction asynchrone pour traiter la validation de la commande
+  // Fonction asynchrone pour traiter la validation de la commande :
+  // 1) crée la commande en base avec le mode de paiement choisi
+  // 2) pour le paiement à la livraison, confirme directement ;
+  //    pour la carte CIB/Edahabia, redirige vers la page de paiement SATIM.
   const placeOrderHandler = async () => {
+    setPaymentError(null);
     try {
-      // Configuration des en-têtes pour la requête API, incluant le token d'autorisation
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      // Données de la commande à envoyer au serveur
       const orderData = {
         orderItems: cartItems.map(item => ({
+              product: item._id, // Champ attendu par le schéma Order (orderItemSchema.product)
               name: item.name,
               quantity: item.quantity,
               image: Array.isArray(item.images) ? item.images[0] : item.images,
-              price: item.price,
-              product: item._id
+              price: item.price
         })),
         shippingAddress: shippingAddress,
-        paymentMethod: 'Paiement à la livraison',
+        paymentMethod,
         itemsPrice: subtotal,
         taxPrice: 0,
         shippingPrice: 0,
         totalPrice: subtotal,
       };
 
-      // Envoi de la requête POST pour créer la commande
-      await axios.post('http://localhost:3000/api/orders', orderData, config);
+      // Exécution de l'action via le dispatch Redux
+      const res = await dispatch(createOrder(orderData)).unwrap();
+      if (!res || !res._id) return;
 
-      // Affichage d'un message de succès
-      alert("Commande validée avec succès !");
+      // La commande est créée en base : le panier a rempli son rôle, on le
+      // vide maintenant (et pas sur la page de confirmation, qui sert aussi
+      // à revoir d'anciennes commandes depuis l'historique — le vider
+      // là-bas effacerait le panier courant à chaque simple consultation).
+      dispatch(clearCart());
 
-      // Suppression des articles du panier du localStorage
-      // localStorage.removeItem('cartItems');
+      if (paymentMethod === 'Paiement à la livraison') {
+        // Rien à payer en ligne : la commande est confirmée directement.
+        navigate(`/order/${res._id}?new=1`);
+        return;
+      }
 
-      // Redirection vers le tableau de bord admin (ou profil utilisateur)
-      navigate(`/admin/dashboard`);
+      // Carte CIB/Edahabia : on enregistre le paiement auprès de SATIM
+      // puis on redirige le client vers leur page de paiement sécurisée.
+      setRedirecting(true);
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.post(`${API_URL}/api/payments/cib/register/${res._id}`, {}, config);
+      window.location.href = data.formUrl;
+
     } catch (err) {
-      // Gestion des erreurs : affichage du message d'erreur du serveur ou un message générique
-      alert(err.response?.data?.message || "Erreur lors de la validation");
+      // Gestion propre des erreurs à l'écran via l'erreur rejetée par le slice Redux
+      // ou par l'appel axios direct (CIB/Edahabia).
+      setRedirecting(false);
+      setPaymentError(err?.response?.data?.message || err.message || err || "Erreur lors de la validation");
     }
   };
 
@@ -110,7 +136,7 @@ const PlaceOrder = () => {
             <h3><FaMapMarkerAlt /> Expédition</h3>
 
             {/* Affichage du nom du destinataire */}
-            <p><strong>Destinataire :</strong> {user.firstName} {user.lastName}</p>
+            <p><strong>Destinataire :</strong> {user?.firstName} {user?.lastName}</p>
             
             {/* Affichage de l'adresse complète */}
             <p><strong>Adresse :</strong> {shippingAddress.address}, {shippingAddress.city} ({shippingAddress.postalCode})</p>
@@ -119,12 +145,27 @@ const PlaceOrder = () => {
             <p><strong>Téléphone :</strong> {shippingAddress.phone}</p>
           </div>
 
-          {/* Bloc d'informations sur le paiement */}
+          {/* Bloc de sélection du mode de paiement */}
           <div className="info-block">
             <h3><FaCreditCard /> Mode de Paiement</h3>
-            
-            {/* Mode de paiement fixe : paiement à la livraison */}
-            <p>Paiement à la livraison</p>
+            <div className="payment-methods-list">
+              {PAYMENT_METHODS.map((method) => (
+                <label
+                  key={method.value}
+                  className={`payment-method-option ${paymentMethod === method.value ? 'selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value={method.value}
+                    checked={paymentMethod === method.value}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                  />
+                  <span className="payment-method-icon">{method.icon}</span>
+                  <span>{method.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Bloc d'informations sur les articles commandés */}
@@ -142,7 +183,7 @@ const PlaceOrder = () => {
                     
                     {/* Image du produit */}
                     <img 
-                      src={item.images ? `http://localhost:3000${(Array.isArray(item.images) ? item.images[0] : item.images).replace('/public', '')}` : ''} 
+                      src={item.images ? getMediaUrl((Array.isArray(item.images) ? item.images[0] : item.images)) : ''} 
                       alt={item.name} 
                     />
                     
@@ -181,14 +222,18 @@ const PlaceOrder = () => {
             <span>Total :</span>
             <span>{subtotal.toLocaleString()} DA</span>
           </div>
-          
-          {/* Bouton pour confirmer la commande, désactivé si le panier est vide */}
+
+          {paymentError && (
+            <p style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '10px' }}>{paymentError}</p>
+          )}
+
+          {/* Bouton pour confirmer la commande, désactivé si le panier est vide ou en cours de chargement */}
           <button
             className="btn-place-order"
-            disabled={cartItems.length === 0}
+            disabled={cartItems.length === 0 || orderState.loading || redirecting}
             onClick={placeOrderHandler}
           >
-            Confirmer la commande
+            {orderState.loading || redirecting ? 'Validation en cours...' : 'Confirmer la commande'}
           </button>
         </div>
       </div>

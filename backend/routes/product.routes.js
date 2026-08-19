@@ -14,7 +14,6 @@ const {
     updateProduct,
     deleteProduct,
     createProductReview,
-    getCategories
 } = require('../controllers/product.controller')
 
 // Importation des middlewares d'authentification et d'administration et d'upload de fichiers.
@@ -41,10 +40,11 @@ const admin = require('../middlewares/admin.middleware')
  *              5. http://localhost:3000/api/products/edit-product/:id (Mettre à jour un produit existant)
  *      method: DELETE
  *              6. http://localhost:3000/api/products/delete-product/:id (Supprimer un produit existant)
+ * 
+ * NB : la gestion des catégories a été déplacée vers routes/category.routes.js (/api/categories).
  */
 
 // ROUTES PUBLIQUES
-router.get('/categories', getCategories) // Route pour recuperer tous les categories enumerer dans le champ category de notre model.
 router.get('/', getAllProducts) // Route pour recuperer tous les produits.
 router.get('/:id', getProductById) // Route pour recuperer un produit par son ID et afficher les details.
 
@@ -55,7 +55,7 @@ router.post('/:id/reviews', auth, createProductReview) // Route pour ajouter un 
 
 // ROUTES ADMIN (authentification + role admin requis) :
 router.post('/', auth, admin, upload, createProduct) // Route pour ajouter un produit.
-router.put('/edit-product/:id', auth, admin, updateProduct) // Route pour mettre à jour un produit existant.
+router.put('/edit-product/:id', auth, admin, upload, updateProduct) // Route pour mettre à jour un produit existant (image incluse).
 router.delete('/delete-product/:id', auth, admin, deleteProduct) // Route pour supprimer un produit existant.
 
 // Exportation du routeur pour l'utiliser dans le fichier principal de l'application (server.js).

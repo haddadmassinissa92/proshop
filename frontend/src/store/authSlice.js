@@ -6,9 +6,10 @@
 // - axios : bibliothèque pour effectuer des requêtes HTTP
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
+import { API_URL as BASE_API_URL } from '../api/api';
 
 // URL de base pour toutes les requêtes d'authentification
-const API_URL = 'http://localhost:3000/api/auth';
+const API_URL = `${BASE_API_URL}/api/auth`;
 
 // --- ACTIONS ASYNCHRONES (Appels Backend) ---
 
@@ -79,7 +80,7 @@ export const deleteUser = createAsyncThunk('auth/delete-user', async (_, thunkAP
         const state = thunkAPI.getState()
         
         // Extraction du token et de l'ID utilisateur depuis l'état
-        const token = thunkAPI.auth.token;
+        const token = state.auth.token;
         const userId = state.auth.user.id
 
         // Configuration des headers avec authentification

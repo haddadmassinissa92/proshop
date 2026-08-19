@@ -77,3 +77,61 @@
 }
 
 .btn-place-order:hover { background: #4f46e5; }
+
+/* Sélecteur de mode de paiement (PlaceOrders.jsx) */
+.payment-methods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payment-method-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.payment-method-option:hover { border-color: #a5b4fc; }
+
+.payment-method-option.selected {
+  border-color: #6366f1;
+  background: #eef2ff;
+}
+
+.payment-method-option input[type="radio"] {
+  width: auto;
+  margin: 0;
+}
+
+.payment-method-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.3rem;
+  color: #6366f1;
+}
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 900px) {
+  .placeorder-container { padding: 0 15px; margin: 20px auto; }
+
+  .placeorder-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* La position sticky n'a plus d'intérêt une fois le résumé passé sous le
+     détail de la commande (colonne unique) — on la désactive pour éviter
+     un comportement de défilement bizarre sur mobile. */
+  .order-summary-card { position: static; }
+
+  .info-block { padding: 18px; }
+
+  .order-item { flex-wrap: wrap; }
+  .order-item span { width: 100%; padding-left: 65px; font-size: 0.85rem; }
+}

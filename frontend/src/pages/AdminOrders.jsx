@@ -11,6 +11,7 @@ import { FaTruck, FaEye, FaCheckCircle, FaClock } from 'react-icons/fa';
 
 // Importation des styles CSS pour l'administration
 import '../styles/Admin.css';
+import { API_URL, getMediaUrl } from '../api/api';
 
 // Définition du composant AdminOrders pour gérer les commandes côté admin
 const AdminOrders = () => {
@@ -32,7 +33,7 @@ const AdminOrders = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
       // Requête GET pour obtenir les commandes admin
-      const { data } = await axios.get('http://localhost:3000/api/orders/admin', config);
+      const { data } = await axios.get(`${API_URL}/api/orders/admin`, config);
       // Mise à jour de l'état avec les 
       // commandes récupérées et Fin du chargement
       setOrders(data.orders);
@@ -59,7 +60,7 @@ const AdminOrders = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
         // Requête PUT pour mettre à jour le statut de livraison
-        await axios.put(`http://localhost:3000/api/orders/${orderId}/deliver`, {}, config);
+        await axios.put(`${API_URL}/api/orders/${orderId}/deliver`, {}, config);
         
         // Alerte de succès
         alert("Statut de la commande mis à jour !");
@@ -68,7 +69,22 @@ const AdminOrders = () => {
         fetchOrders(); 
       } catch (error) {
         // Alerte en cas d'erreur
-        alert("Erreur lors de la mise à jour du statut");
+        alert(error.response?.data?.message || "Erreur lors de la mise à jour du statut");
+      }
+    }
+  };
+
+  // Fonction pour marquer une commande comme payée (paiement à la livraison
+  // encaissé, ou virement reçu — pas de passerelle de paiement automatique).
+  const markAsPaidHandler = async (orderId) => {
+    if (window.confirm("Confirmer que cette commande a été payée ?")) {
+      try {
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        await axios.put(`${API_URL}/api/orders/${orderId}/pay`, {}, config);
+        alert("Commande marquée comme payée !");
+        fetchOrders();
+      } catch (error) {
+        alert(error.response?.data?.message || "Erreur lors de la mise à jour du paiement");
       }
     }
   };
@@ -99,7 +115,7 @@ const AdminOrders = () => {
 
       {/* Conteneur du tableau des commandes */}
       <div className="admin-table-container">
-        
+
         {/* Tableau pour afficher les commandes */}
         <table className="admin-table">
           
@@ -109,6 +125,7 @@ const AdminOrders = () => {
               <th>ID</th>
               <th>CLIENT</th>
               <th>DATE</th>
+              <th>MODE</th>
               <th>TOTAL</th>
               <th>PAYÉ</th>
               <th>LIVRÉ</th>
@@ -123,22 +140,25 @@ const AdminOrders = () => {
                 <tr key={order._id}>
                   
                   {/* ID de la commande tronqué */}
-                  <td className="order-id">#{order._id.substring(18)}</td>
+                  <td className="order-id" data-label="ID">#{order._id.substring(18)}</td>
                   
                   {/* Informations du client */}
-                  <td>
+                  <td data-label="Client">
                     <strong>{order.user?.firstName} {order.user?.lastName}</strong>
                     <br /><small>{order.user?.email}</small>
                   </td>
                   
                   {/* Date de création */}
-                  <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                  
+                  <td data-label="Date">{new Date(order.createdAt).toLocaleDateString()}</td>
+
+                  {/* Mode de paiement choisi */}
+                  <td data-label="Mode">{order.paymentMethod}</td>
+
                   {/* Prix total */}
-                  <td>{order.totalPrice.toLocaleString()} DA</td>
+                  <td data-label="Total">{order.totalPrice.toLocaleString()} DA</td>
                   
                   {/* Statut de paiement */}
-                  <td>
+                  <td data-label="Payé">
                     {order.isPaid ? 
                       <span className="badge success">Payé</span> : 
                       <span className="badge danger">En Attente</span>
@@ -146,16 +166,23 @@ const AdminOrders = () => {
                   </td>
                   
                   {/* Statut de livraison */}
-                  <td>
+                  <td data-label="Livré">
                     {order.isDelivered ? 
                       <span className="badge success">Expédié</span> : 
                       <span className="badge warning">À expédier</span>
                     }
                   </td>
                   
-                  {/* Boutons de livraison et de previsualisation des details */}
-                  <td className="actions-cell">
-                    
+                  {/* Boutons de paiement, livraison et previsualisation des details */}
+                  <td className="actions-cell" data-label="Actions">
+
+                    {/* Bouton pour marquer le paiement reçu */}
+                    {!order.isPaid && (
+                      <button className="btn-deliver" onClick={() => markAsPaidHandler(order._id)}>
+                        <FaClock /> Marquer payé
+                      </button>
+                    )}
+
                     {/* Bouton pour marquer la livréson */}
                     {!order.isDelivered && (
                       <button className="btn-deliver" onClick={() => deliverHandler(order._id)}>
@@ -172,7 +199,7 @@ const AdminOrders = () => {
               ))
             ) : (
               // Message si aucune commande trouvée
-              <tr><td colSpan="7" style={{textAlign: 'center'}}>Aucune commande trouvée.</td></tr>
+              <tr><td colSpan="8" style={{textAlign: 'center'}}>Aucune commande trouvée.</td></tr>
             )}
           </tbody>
         </table>
@@ -197,6 +224,7 @@ const AdminOrders = () => {
                 <div className="detail-section">
                   <h3>Détails de la Commande</h3>
                   <p><strong>Date :</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
+                  <p><strong>Mode de paiement :</strong> {selectedOrder.paymentMethod}</p>
                   <p><strong>Total :</strong> {selectedOrder.totalPrice.toLocaleString()} DA</p>
                   <p><strong>Payé :</strong> {selectedOrder.isPaid ? 'Oui' : 'Non'}</p>
                   <p><strong>Livré :</strong> {selectedOrder.isDelivered ? 'Oui' : 'Non'}</p>
@@ -209,14 +237,14 @@ const AdminOrders = () => {
                       {selectedOrder.orderItems.map((item, index) => (
                         <li key={index}>
                           <img 
-                            src={item.image ? `http://localhost:3000${item.image.replace('/public', '')}` : 'https://placeholder.com'} 
+                            src={item.image ? getMediaUrl(item.image) : 'https://placeholder.com'} 
                             alt={item.name} 
                             style={{ width: '50px', height: '50px', objectFit: 'contain', marginRight: '10px' }} 
                           />
                           <div>
                             <strong>{item.name}</strong>
                             <br />
-                            Quantité: {item.qty} | Prix: {item.price} DA
+                            Quantité: {item.quantity} | Prix: {item.price} DA
                           </div>
                         </li>
                       ))}

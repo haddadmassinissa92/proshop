@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 
 // Import des icônes FontAwesome pour la fermeture et l'upload
 import { FaTimes, FaCloudUploadAlt } from 'react-icons/fa';
+import { API_URL } from '../api/api';
 
 const AddProductModal = ({ onClose, refreshProducts }) => {
   // Récupération du token d'authentification depuis l'état Redux
@@ -26,31 +27,35 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
-    category: 'ordinateurs',
+    category: '',
     price: '',
     countInStock: '',
     description: ''
   });
 
 
+  // État pour afficher un message si le chargement des catégories échoue
+  const [catError, setCatError] = useState(null);
+
   // Charger les catégories du backend au démarrage
   useEffect(() => {
     const fetchCats = async () => {
         try {
             // Récupérer les catégories depuis l'API
-            const { data } = await axios.get('http://localhost:3000/api/products/categories');
+            const { data } = await axios.get(`${API_URL}/api/categories`);
             
             // Mise à jour de l'état des catégories
             setCategories(data);
-            
-            // Initialisation de la catégorie par défaut avec la première valeur reçue
+
+            // Initialisation de la catégorie par défaut avec l'ID de la première
+            // catégorie reçue (et non l'objet catégorie entier — Mongoose attend
+            // un ObjectId dans le champ "category" du produit).
             if (data.length > 0) {
-                setFormData(prev => ({ ...prev, category: data[0] }));
+                setFormData(prev => ({ ...prev, category: prev.category || data[0]._id }));
             }
         } catch (erreur) {
             console.error("Impossible de charger les catégories", erreur);
-            // Valeurs de secours si le backend échoue
-            setCategories(['ordinateurs', 'composants', 'peripheriques']);
+            setCatError("Impossible de charger les catégories. Vérifie qu'au moins une catégorie existe (page Catégories).");
         }
     };
     fetchCats();
@@ -73,6 +78,9 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
     // Vérification qu'une image est sélectionnée
     if (!imageFile) return alert("Veuillez choisir une image !");
 
+    // Vérification qu'une catégorie est bien sélectionnée
+    if (!formData.category) return alert("Veuillez choisir une catégorie (ou en créer une depuis la page Catégories).");
+
     // Création d'un objet FormData pour envoyer fichier et données texte
     const data = new FormData();
     data.append('name', formData.name);
@@ -92,8 +100,10 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
         } 
       };
       
-      // L'Ajouter le produit
-      await axios.post('http://localhost:3000/api/products', data, config);
+      // Ajouter le produit
+      // (Bug corrigé : c'était `\${API_URL}` avec un backslash, donc littéralement
+      // envoyé comme URL relative "${API_URL}/api/products" au lieu d'être interpolé.)
+      await axios.post(`${API_URL}/api/products`, data, config);
       // Message de succès
       // Rafraîchissement de la liste des produits
       // Fermeture du modal
@@ -101,8 +111,9 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
       refreshProducts();
       onClose();
     } catch (err) {
-      // Gestion des erreurs
-      alert("Erreur : " + (err.response?.data?.message || "Échec de l'envoi"));
+      // Gestion des erreurs (y compris quand le serveur est injoignable,
+      // où err.response n'existe pas du tout).
+      alert("Erreur : " + (err.response?.data?.message || err.message || "Échec de l'envoi"));
     }
   };
 
@@ -119,28 +130,33 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
         <form onSubmit={handleSubmit}>
           {/* Ligne pour le nom et la marque du produit */}
           <div className="form-row">
-            <input type="text" placeholder="Nom du produit" required
+            <input type="text" placeholder="Nom du produit" required value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})} />
             
-            <input type="text" placeholder="Marque" required
+            <input type="text" placeholder="Marque" required value={formData.brand}
               onChange={(e) => setFormData({...formData, brand: e.target.value})} />
           </div>
 
           {/* Ligne pour la catégorie et le prix */}
           <div className="form-row">
-            <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
+            <select value={formData.category} required
+              onChange={(e) => setFormData({...formData, category: e.target.value})}>
+              <option value="" disabled>-- Choisir une catégorie --</option>
               {/* Options pour chaque catégorie */}
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat.toUpperCase()}</option>
+                <option key={cat._id} value={cat._id}>
+                                    {cat.name}
+                                </option>
               ))}
             </select>
 
-            <input type="number" placeholder="Prix (DA)" required
+            <input type="number" placeholder="Prix (DA)" required value={formData.price}
               onChange={(e) => setFormData({...formData, price: e.target.value})} />
           </div>
+          {catError && <p style={{ color: '#ef4444', fontSize: '0.85rem', margin: '-8px 0 10px' }}>{catError}</p>}
 
           {/* Champ pour la quantité en stock */}
-          <input type="number" placeholder="Quantité en stock" required
+          <input type="number" placeholder="Quantité en stock" required value={formData.countInStock}
             onChange={(e) => setFormData({...formData, countInStock: e.target.value})} />
 
           {/* Section d'upload d'image */}
@@ -155,7 +171,7 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
           </div>
 
           {/* Zone de texte pour la description */}
-          <textarea placeholder="Description du produit..." required
+          <textarea placeholder="Description du produit..." required value={formData.description}
             onChange={(e) => setFormData({...formData, description: e.target.value})}></textarea>
 
           {/* Bouton de soumission du formulaire */}

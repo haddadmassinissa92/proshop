@@ -16,11 +16,15 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import ProductDetails from './pages/ProductDetails';
 import AdminProducts from './pages/AdminProducts';
+import AdminCategories from './pages/AdminCategories';
 import AdminDashboard from './pages/AdminDashboard';
 import Shipping from './pages/Shipping';
 import PlaceOrder from './pages/PlaceOrders';
 import MyOrders from './pages/MyOrders';
+import OrderSuccess from './pages/OrderSuccess';
 import AdminOrders from './pages/AdminOrders';
+import MentionsLegales from './pages/MentionsLegales';
+import CGV from './pages/CGV';
 
 
 // Importation useSelector pour accéder à l'état global, 
@@ -79,6 +83,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/product/:id" element={<ProductDetails />} />
 
+          {/* Pages légales — accessibles à tous, connecté ou non */}
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgv" element={<CGV />} />
+
           <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/" />} />
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/" />} />
 
@@ -89,6 +97,9 @@ function App() {
           <Route path="/shipping" element={token ? <Shipping /> : <Navigate to="/" />} />
           <Route path="/place-order" element={token ? <PlaceOrder /> : <Navigate to="/" />} />
 
+          {/* Page de confirmation affichée juste après la validation d'une commande */}
+          <Route path="/order/:id" element={token ? <OrderSuccess /> : <Navigate to="/login" />} />
+
           {/* Historique des commandes de l'utilisateur */}
           <Route path="/user/orders" element={token ? <MyOrders /> : <Navigate to="/" />} />
 
@@ -96,6 +107,10 @@ function App() {
           <Route
             path="/admin/products"
             element={token && user?.role === 'admin' ? <AdminProducts /> : <Navigate to="/" />}
+          />
+          <Route
+            path="/admin/categories"
+            element={token && user?.role === 'admin' ? <AdminCategories /> : <Navigate to="/" />}
           />
           <Route
             path="/admin/dashboard"

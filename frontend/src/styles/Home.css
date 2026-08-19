@@ -193,3 +193,51 @@
   cursor: pointer;
 }
 
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 768px) {
+  .home-container { padding: 24px 15px; }
+
+  .main-title { font-size: 1.5rem; margin-bottom: 20px; }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .card-header { padding: 14px 14px 8px; }
+  .card-body { padding: 8px 14px; }
+  .card-footer { padding: 14px; }
+
+  .product-img { height: 140px; }
+
+  .product-name { font-size: 1rem; }
+
+  .price { font-size: 1.15rem; }
+
+  /* La carte s'empile en colonne pour laisser de la place au bouton complet
+     plutôt que de le comprimer à côté du prix/note sur un écran étroit. */
+  .footer-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .add-to-cart-btn {
+    justify-content: center;
+    font-size: 12px;
+    padding: 10px;
+  }
+}
+
+/* En dessous de 480px, 2 colonnes rendent chaque carte trop étroite : le
+   texte (description, note, bouton) se comprime et déborde. Une seule
+   colonne pleine largeur reste lisible. */
+@media (max-width: 480px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .product-img { height: 200px; }
+}
+

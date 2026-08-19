@@ -17,6 +17,7 @@ import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 
 // Importation des styles CSS pour l'administration
 import '../styles/Admin.css';
+import { API_URL, getMediaUrl } from '../api/api';
 
 // Définition du composant AdminProducts 
 // pour gérer les produits côté admin
@@ -35,7 +36,7 @@ const AdminProducts = () => {
   // Fonction asynchrone pour récupérer les produits depuis l'API
   const fetchProducts = async () => {
     // Recuperer tous les produits
-    const { data } = await axios.get('http://localhost:3000/api/products');
+    const { data } = await axios.get(`${API_URL}/api/products`);
     
     // Mise à jour de l'état avec les produits récupérés
     setProducts(data);
@@ -52,7 +53,7 @@ const AdminProducts = () => {
     // Confirmation de l'utilisateur avant de supprimer
     if (window.confirm("Supprimer ce produit ?")) {
       // Supprimer le produit avec le token d'autorisation
-      await axios.delete(`http://localhost:3000/api/products/delete-product/${id}`, {
+      await axios.delete(`${API_URL}/api/products/delete-product/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -97,10 +98,10 @@ const AdminProducts = () => {
             <tr key={product._id}>
               
               {/* l'image du produit */}
-              <td>
+              <td data-label="Image">
                 <img 
                   src={product.images && product.images[0] 
-                    ? `http://localhost:3000${product.images[0].replace('/public', '')}` 
+                    ? getMediaUrl(product.images[0]) 
                     : 'https://placeholder.com'} 
                   alt={product.name} 
                   style={{ width: '50px', height: '50px', objectFit: 'contain' }} 
@@ -108,19 +109,19 @@ const AdminProducts = () => {
               </td>
               
               {/* Nom du produit */}
-              <td>{product.name}</td>
+              <td data-label="Nom">{product.name}</td>
               
               {/* Marque du produit */}
-              <td>{product.brand}</td>
+              <td data-label="Marque">{product.brand}</td>
               
               {/* Prix du produit en DA */}
-              <td>{product.price} DA</td>
+              <td data-label="Prix">{product.price} DA</td>
               
               {/* Quantité en stock */}
-              <td>{product.countInStock}</td>
+              <td data-label="Stock">{product.countInStock}</td>
               
               {/* Actions avec boutons modifier et supprimer */}
-              <td>
+              <td data-label="Actions">
                 <button className="btn-edit" onClick={() => setEditingProduct(product)}>
                   <FaEdit />
                 </button>

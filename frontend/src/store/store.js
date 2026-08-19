@@ -8,6 +8,7 @@ import { configureStore } from '@reduxjs/toolkit';
 // cartReducer : gère l'état du panier d'achat (articles, quantités)
 import authReducer from './authSlice';
 import cartReducer from './cartSlice';
+import orderReducer from './orderSlice'; // Importation du reducer pour les commandes
 
 // Création et configuration du store Redux
 // Le store centralise tout l'état global de l'application
@@ -18,6 +19,7 @@ export const store = configureStore({
         // Slice cart : gère les produits informatiques dans le panier (liste des articles, quantités, persistance dans localStorage)
         auth: authReducer,
         cart: cartReducer,
+        order: orderReducer, // Ajout du slice order pour gérer les commandes
     },
     
 });

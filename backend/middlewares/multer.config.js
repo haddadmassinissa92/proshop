@@ -1,14 +1,21 @@
 // multer.config.js - Configuration Multer pour le backend de l'application proShop.
-// Ce fichier définit comment Multer doit stocker les fichiers uploadés, quels types
+// Ce fichier définit comment Multer doit récupérer les fichiers uploadés, quels types
 // de fichiers sont autorisés, et quelle taille maximale est acceptée.
 // Ce middleware est destiné aux routes qui gèrent l'upload d'images depuis le frontend.
+//
+// IMPORTANT : les fichiers ne sont PLUS écrits sur le disque du serveur ici
+// (multer.memoryStorage() les garde juste en mémoire, dans req.file.buffer).
+// C'est le contrôleur qui les envoie ensuite à Cloudinary (voir
+// utils/cloudinary.js) pour un stockage permanent. Sur la plupart des
+// hébergeurs (Render, Railway...), le disque local est effacé à chaque
+// redéploiement — stocker les images là-dessus les aurait fait disparaître
+// à la prochaine mise à jour du code.
 
 // Import du package Multer pour traiter les fichiers 
 // uploadés dans les requêtes HTTP.
 const multer = require('multer');
 
 // Correspondance entre les MIME types autorisés et les extensions de fichier.
-// Cela permet de générer une extension de fichier correcte à partir du type MIME.
 const MIME_TYPES = {
     'image/webp': 'webp',
     'image/jpeg': 'jpg',
@@ -19,28 +26,8 @@ const MIME_TYPES = {
     'image/avif': 'avif'
 };
 
-// Définition du stockage physique des fichiers uploadés.
-const storage = multer.diskStorage({
-    // Destination est appelé pour déterminer où enregistrer le fichier.
-    // On stocke les images dans le dossier public/images du backend.
-    destination: (req, file, callback) => {
-        callback(null, './public/images');
-    },
-
-    // filename est appelé pour déterminer le nom du fichier enregistré.
-    filename: (req, file, callback) => {
-        
-        // file.originalname contient le nom original du fichier fourni par l'utilisateur.
-        // On enlève les espaces et on retire l'extension originale pour éviter les collisions.
-        // On détermine l'extension du fichier en fonction de son type MIME.
-        const name = file.originalname.split(' ').join('_').split('.')[0];
-        const extension = MIME_TYPES[file.mimetype];
-
-        // On ajoute un timestamp pour garantir que chaque fichier a un nom unique.
-        // Exemple: photo_de_produit_1712345678901.jpg
-        callback(null, name + '_' + Date.now() + '.' + extension);
-    }
-});
+// Stockage en mémoire (buffer) plutôt que sur disque — voir note ci-dessus.
+const storage = multer.memoryStorage();
 
 // Filtre qui valide que le fichier uploadé est bien une image autorisée.
 const fileFilter = (req, file, callback) => {

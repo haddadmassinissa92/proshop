@@ -109,3 +109,15 @@
   font-size: 14px;
   text-align: center;
 }
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 600px) {
+  .auth-container { padding: 30px 15px; }
+  .auth-form { padding: 22px; }
+}
+
+@media (max-width: 420px) {
+  /* Les paires de champs (prénom/nom...) s'empilent sur les très petits
+     écrans plutôt que de comprimer chaque champ à ~140px. */
+  .form-row { flex-direction: column; gap: 0; }
+}

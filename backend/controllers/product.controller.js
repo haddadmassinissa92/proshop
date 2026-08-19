@@ -2,6 +2,8 @@
 
 // Importation du modèle de données produit pour interagir avec la base de données MongoDB.
 const Product = require('../models/product.model')
+const User = require('../models/user.model')
+const { uploadImageBuffer } = require('../utils/cloudinary')
 
 
 const createProduct = async (req, res) => {
@@ -10,7 +12,7 @@ const createProduct = async (req, res) => {
      * 
      * Étapes :
      * Tout d'abord essayer:
-     *      1. Récupérer le chemin de l'image du produit à partir de req.file généré par Multer.
+     *      1. Envoyer l'image du produit (req.file.buffer, fourni par Multer) vers Cloudinary.
      *      2. Récupérer les données du produit à partir de req.body et ajouter le champ 'createdBy' avec l'ID de l'administrateur connecté.
      *      3. Vérifier que l'image n'est pas manquante dans les données du produit.
      * 
@@ -32,13 +34,15 @@ const createProduct = async (req, res) => {
      */
 
     try {
-        // On récupère le chemin du fichier généré par Multer
-        const imageUrl = req.file ? `/images/${req.file.filename}` : null;
+        // On envoie l'image vers Cloudinary (stockage permanent, contrairement au
+        // disque du serveur qui est effacé à chaque redéploiement) et on récupère
+        // son URL. Pas d'upload si aucune image n'a été envoyée.
+        const imageUrl = req.file ? await uploadImageBuffer(req.file.buffer, 'proshop/products') : null;
 
         // On force l'ID de l'administrateur qui crée le produit à partir du token d'authentification.
         const productData = { 
             ...req.body, 
-            createdBy: req.user.id,
+            user: req.user.id,
             images: imageUrl ? [imageUrl] : []
         }
 
@@ -117,7 +121,9 @@ const getAllProducts = async (req, res) => {
         }
 
         // Tri des produits par date de création (du plus récent au plus ancien).
-        let result = Product.find(query)
+        // On peuple la catégorie (juste son nom et son slug) pour que le frontend
+        // puisse afficher un nom lisible au lieu de l'ObjectId brut.
+        let result = Product.find(query).populate('category', 'name slug')
 
         // Tri dynamique selon le paramètre 'sort' (prix ascendant, descendant ou par défaut date).
         if (sort === 'price-asc') {
@@ -130,35 +136,6 @@ const getAllProducts = async (req, res) => {
 
         // On recupere tous les produits qui correspondent a la query.
         let products = await result
-
-        // // Si la base de donnees est vide
-        // // On fais des produits de test.
-        // if (products.length === 0) {
-        //     products = [
-        //         {
-        //             _id: "demo1",
-        //             name: "MacBook Pro M2",
-        //             price: 250000,
-        //             category: "ordinateurs",
-        //             brand: "Apple",
-        //             description: "Le MacBook Pro 13 pouces avec puce M2 (2022) est un ordinateur portable compact et puissant, conçu pour l'efficacité. Il se distingue par un excellent équilibre entre performance et autonomie.",
-        //             images: ["https://unsplash.com"],
-        //             countInStock: 5,
-        //             rating: 4.8
-        //         },
-        //         {
-        //             _id: "demo2",
-        //             name: "Clavier Mechanical RGB",
-        //             price: 12000,
-        //             category: "peripheriques",
-        //             brand: "Razer",
-        //             description: "Le clavier mécanique RGB petit format (60-65%) est l'outil idéal pour les joueurs compétitifs et les setups minimalistes. Très compact, il supprime le pavé numérique et souvent les touches de fonction (F1-F12) pour maximiser l'espace de la souris, offrant une meilleure ergonomie.",
-        //             images: ["https://unsplash.com"],
-        //             countInStock: 10,
-        //             rating: 4.5
-        //         }
-        //     ];
-        // }
 
         // On renvoie le resultat de la requette.
         res.status(200).json(products) 
@@ -196,10 +173,12 @@ const getProductById = async (req, res) => {
 
     try {
         // On trouve un produit par son id.
-        const product = await Product.findById(req.params.id);
+        const product = await Product
+            .findById(req.params.id)
+            .populate('category');
         if (!product) { 
             // Si le produit n'est pas trouver, on affiche une erreur.
-            res.status(404).json({ message: "Product not found!" });
+            return res.status(404).json({ message: "Product not found!" });
         } 
         
         // On renvoie le resultat de la requette.
@@ -247,13 +226,38 @@ const updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (product) {
             // Mettre à jour les champs du produit.
-            product.name = name || product.name;
-            product.description = description || product.description;
-            product.price = price || product.price;
-            product.category = category || product.category;
-            product.brand = brand || product.brand;
-            product.countInStock = countInStock || product.countInStock;
-            product.images = images;
+            if (name !== undefined) {
+                product.name = name;
+            }
+
+            if (description !== undefined) {
+                product.description = description;
+            }
+
+            if (price !== undefined) {
+                product.price = price;
+            }
+
+            if (category !== undefined) {
+                product.category = category;
+            }
+
+            if (brand !== undefined) {
+                product.brand = brand;
+            }
+
+            if (countInStock !== undefined) {
+                product.countInStock = countInStock;
+            }
+            // On ne touche aux images QUE si de nouvelles sont explicitement fournies —
+            // sinon on gardait le tableau vide/undefined et ça effaçait les images existantes.
+            product.images = images || product.images;
+
+            // Si une nouvelle image a été uploadée via Multer, elle remplace la couverture actuelle.
+            if (req.file) {
+                const imageUrl = await uploadImageBuffer(req.file.buffer, 'proshop/products');
+                product.images = [imageUrl];
+            }
 
             // Enregistrer le produit mis à jour dans la base de données MongoDB.
             const updatedProduct = await product.save()
@@ -363,19 +367,24 @@ const createProductReview = async (req, res) => {
 
         if (!product) { 
             // Si le produit n'est pas trouver, on affiche une erreur.
-            res.status(404).json({ message: 'Product not found !'})
+            return res.status(404).json({ message: 'Product not found !'})
         } 
 
         // On verifie si l'utilisateur a deja laissé un avis pour ce produit.
         const alreadyReviewed = product.reviews.find(r => r.user.toString() === req.user.id.toString())
         if (alreadyReviewed) {
             // Si l'utilisateur a déjà laissé un avis, on affiche une erreur.
-            res.status(400).json({ message: 'You have already reviewed this product !'})
+            return res.status(400).json({ message: 'You have already reviewed this product !'})
         }
+
+        // Le token ne contient que { id, role } — on va chercher le nom réel de
+        // l'utilisateur en base pour l'afficher sur l'avis (sinon "undefined undefined").
+        const reviewer = await User.findById(req.user.id).select('firstName lastName');
+        const reviewerName = reviewer ? `${reviewer.firstName} ${reviewer.lastName}` : 'Client';
 
         // On cree un nouvel avis avec les donnees recu dans req.body et les informations de l'utilisateur connecté.
         const review = {
-            name: req.user.firstName + ' ' + req.user.lastName || 'Client',
+            name: reviewerName,
             rating: Number(rating),
             comment,
             user: req.user.id
@@ -403,46 +412,6 @@ const createProductReview = async (req, res) => {
 }
 
 
-const getCategories = async (req, res) => {
-    /**
-     * Fonction pour récupérer la liste de toutes les catégories de produits disponibles.
-     * 
-     * Étapes :
-     * Tout d'abord essayer:
-     *      1. Récupérer directement les valeurs des catégories depuis le schéma du modèle Product (champ 'category').
-     * 
-     * Si les catégories existent:
-     *      2. Renvoyer le tableau des catégories avec un statut 200.
-     * 
-     * Sinon, si les catégories n'existent pas:
-     *      3. Renvoyer une erreur 404 avec un message indiquant que les catégories n'ont pas été trouvées.
-     * 
-     * Sinon en cas d'erreur serveur:
-     *      4. Afficher l'erreur dans la console pour le développement.
-     *      5. Renvoyer une réponse avec un message d'erreur et un statut 500 pour indiquer une erreur serveur.
-     * 
-     * @desc Récupérer la liste de toutes les catégories de produits définies dans le système.
-     * @route GET /api/categories
-     * @access Public (accessible à tous)
-     */
-    try {
-        // On récupère directement les valeurs depuis le schéma du modèle Product
-        const categories = await Product.schema.path('category').enumValues;
-        
-        if (!categories) {
-            return res.status(404).json({ message: "Catégories non trouvées" });
-        }
-        
-        res.status(200).json(categories);
-    } catch (error) {
-        console.error("Erreur catégories:", error);
-        res.status(500).json({ message: "Erreur serveur lors de la récupération des catégories" });
-    }
-};
-
-
-
-
 // On exporte les fonctions pour les utiliser dans les routes.
 module.exports = {
     createProduct,
@@ -451,5 +420,4 @@ module.exports = {
     updateProduct,
     deleteProduct,
     createProductReview,
-    getCategories
 }

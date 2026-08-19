@@ -25,5 +25,12 @@ body {
   display: block;
 }
 
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 600px) {
+  .main-content {
+    padding: 20px 12px;
+  }
+}
+
 
 

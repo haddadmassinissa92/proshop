@@ -6,20 +6,23 @@ import React, { useEffect, useState } from 'react';
 // Import axios pour effectuer des requêtes HTTP
 import axios from 'axios';
 
+// Import useNavigate pour rendre chaque ligne de commande cliquable
+import { useNavigate } from 'react-router-dom';
+
 // Import useSelector pour accéder au state Redux
 import { useSelector } from 'react-redux';
 
 // Import des icônes FontAwesome pour afficher le statut de livraison
 import { FaBox, FaClock, FaCheckCircle } from 'react-icons/fa';
 
-// Import des styles CSS spécifiques à la page des commandes
-import '../styles/MyOrders.css';
+import { API_URL } from '../api/api';
 
 const MyOrders = () => {
   // État local pour stocker la liste des commandes de l'utilisateur
   // Et La Récupération du token d'authentification depuis le store Redux
   const [orders, setOrders] = useState([]);
   const { token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fonction asynchrone pour récupérer l'historique des commandes
@@ -29,7 +32,7 @@ const MyOrders = () => {
         const config = { headers: { Authorization: `Bearer ${token}` } };
         
         // Requête API pour obtenir les commandes de l'utilisateur connecté
-        const { data } = await axios.get('http://localhost:3000/api/orders/user', config);
+        const { data } = await axios.get(`${API_URL}/api/orders/user`, config);
         
         // Mise à jour de l'état avec les commandes renvoyées par le serveur
         setOrders(data.orders);
@@ -46,7 +49,7 @@ const MyOrders = () => {
     <div className="admin-container">
       <h1><FaBox /> Mon Historique d'Achats</h1>
 
-      {/* Tableau listant les commandes */}
+      {/* Tableau listant les commandes — chaque ligne mène au détail de la commande */}
       <table className="admin-table">
         <thead>
           <tr>
@@ -58,16 +61,20 @@ const MyOrders = () => {
         </thead>
         <tbody>
           {orders.length > 0 ? orders.map((order) => (
-            <tr key={order._id}>
+            <tr
+              key={order._id}
+              className="clickable-row"
+              onClick={() => navigate(`/order/${order._id}`)}
+            >
               {/* Identifiant de la commande tronqué pour l'affichage */}
-              <td>#{order._id.substring(18)}</td>
+              <td data-label="Commande">#{order._id.substring(18)}</td>
               
               {/* Date de création de la commande */}
-              <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+              <td data-label="Date">{new Date(order.createdAt).toLocaleDateString()}</td>
               
               {/* Montant total de la commande */}
-              <td>{order.totalPrice.toLocaleString()} DA</td>
-              <td>
+              <td data-label="Total">{order.totalPrice.toLocaleString()} DA</td>
+              <td data-label="Livraison">
                 {/* Affichage du statut de livraison */}
                 {order.isDelivered ? 
                   <span className="status-pill delivered"><FaCheckCircle /> Livré</span> : 
