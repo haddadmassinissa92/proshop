@@ -108,21 +108,34 @@
   color: #94a3b8;
 }
 
-/* ===== RESPONSIVE MOBILE ===== */
-@media (max-width: 768px) {
-  .footer-top {
-    grid-template-columns: 1fr 1fr;
-    padding: 40px 20px 24px;
-    gap: 30px 20px;
-  }
-
-  .footer-brand {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 480px) {
+/* ===== RESPONSIVE MOBILE =====
+   Un seul palier, direct vers une colonne unique empilée (marque, puis
+   navigation, informations, contact chacune l'une sous l'autre) — plus
+   simple et plus fiable qu'un état intermédiaire à 2 colonnes, qui rendait
+   la mise en page bancale sur les écrans étroits. */
+@media (max-width: 700px) {
   .footer-top {
     grid-template-columns: 1fr;
+    padding: 36px 20px 24px;
+    gap: 28px;
+    text-align: center;
+  }
+
+  .footer-tagline {
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .footer-payment-badges {
+    justify-content: center;
+  }
+
+  .footer-col ul {
+    align-items: center;
+  }
+
+  .footer-contact li {
+    justify-content: center;
   }
 }
