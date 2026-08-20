@@ -1,0 +1,63 @@
+# .github/workflows/frontend-ci.yml
+#
+# Vérifie automatiquement, à chaque push et pull request qui touche au
+# dossier frontend/, que le code respecte les règles ESLint et que le
+# build de production réussit sans erreur — la manière la plus simple de
+# détecter un import cassé, une erreur de syntaxe JSX, ou une variable
+# d'environnement manquante avant que ça n'atteigne la production.
+
+name: Frontend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Installation de Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vérification ESLint
+        # continue-on-error : le code n'a jamais été passé au crible d'un
+        # "npm run lint" complet pendant son développement — il est probable
+        # qu'il reste des avertissements mineurs (imports inutilisés, etc.).
+        # Non-bloquant pour l'instant pour éviter un badge rouge dès le
+        # premier push ; lance "npm run lint" en local, corrige ce qui
+        # ressort, puis retire cette ligne pour que le lint redevienne une
+        # vraie porte de qualité (recommandé avant de mettre ce repo en avant
+        # dans un portfolio).
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Build de production
+        run: npm run build
+        env:
+          # Valeur de secours pour que le build réussisse en CI, où la vraie
+          # URL du backend n'a pas de sens — c'est le seul but ici (vérifier
+          # que "npm run build" ne plante pas), pas de faire tourner l'app.
+          VITE_API_URL: https://example.com

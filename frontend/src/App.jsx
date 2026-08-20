@@ -2,12 +2,13 @@
 
 // Importations React et bibliothèques
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Importation des composants
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CartSidebar from './components/CartSidebar';
+import ShoppingAssistant from './components/ShoppingAssistant';
 
 // Importation des composants de page
 import Home from './pages/Home';
@@ -41,6 +42,7 @@ import './App.css';
 function App() {
   // useDispatch pour envoyer des actions au store
   const dispatch = useDispatch();
+  const location = useLocation();
 
   // État local pour savoir si le panneau du panier est ouvert ou fermé
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -132,6 +134,11 @@ function App() {
 
       {/* footer de site web page */}
       <Footer />
+
+      {/* Assistant d'achat IA — visible sur tout le site sauf l'espace
+          admin, où il n'a pas sa place (c'est un outil de découverte
+          produit pour les clients, pas pour la gestion du stock). */}
+      {!location.pathname.startsWith('/admin') && <ShoppingAssistant />}
     </div>
   );
 }

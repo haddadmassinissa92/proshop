@@ -23,8 +23,12 @@ const upload = require('../middlewares/multer.config');
 
 // Limite stricte sur les routes sensibles (login/signup) pour éviter le brute-force :
 // 10 tentatives par IP toutes les 15 minutes.
+// (skip désactive la limite pendant les tests automatisés — une suite de
+// tests fait légitimement plus de 10 appels à /signup ou /login en quelques
+// secondes, ce n'est pas du brute-force à bloquer.)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
+    skip: () => process.env.NODE_ENV === 'test',
     max: 10,
     message: { message: "Trop de tentatives. Réessaie dans 15 minutes." },
     standardHeaders: true,
