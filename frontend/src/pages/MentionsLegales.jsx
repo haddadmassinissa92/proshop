@@ -67,7 +67,7 @@ const MentionsLegales = () => {
       <p>
         Conformément à la réglementation en vigueur, tu disposes d'un droit d'accès, de rectification
         et de suppression de tes données personnelles. Pour l'exercer, contacte-nous à
-        <Placeholder> [ADRESSE EMAIL DE CONTACT]</Placeholder>.
+        <Placeholder> [hmassinissa39@gmail.com]</Placeholder>.
       </p>
 
       <h2>6. Cookies</h2>
@@ -79,7 +79,7 @@ const MentionsLegales = () => {
 
       <h2>7. Contact</h2>
       <p>
-        Pour toute question, réclamation, ou signalement lié au site : <Placeholder>[ADRESSE EMAIL DE CONTACT]</Placeholder>
+        Pour toute question, réclamation, ou signalement lié au site : <Placeholder>[hmassinissa39@gmail.com]</Placeholder>
       </p>
     </div>
   );

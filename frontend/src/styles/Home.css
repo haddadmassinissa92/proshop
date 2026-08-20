@@ -101,7 +101,12 @@
   border-top: 1px solid #f1f5f9;
 }
 
-.footer-top {
+/* Ligne prix + stock à l'intérieur du footer de la carte produit.
+   Anciennement nommée ".footer-top" — renommée pour éviter une collision
+   avec la classe ".footer-top" du vrai footer du site (Footer.css), qui
+   partageait accidentellement le même nom générique et en écrasait le
+   layout (display: flex prenait le dessus sur le display: grid voulu). */
+.card-footer-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -124,7 +129,10 @@
 .in-stock { background: #dcfce7; color: #15803d; }
 .out-of-stock { background: #fee2e2; color: #b91c1c; }
 
-.footer-bottom {
+/* Ligne note + bouton panier, en bas du footer de la carte produit.
+   Renommée pour la même raison que .card-footer-top ci-dessus — collision
+   avec .footer-bottom du vrai footer du site. */
+.card-footer-bottom {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -216,7 +224,7 @@
 
   /* La carte s'empile en colonne pour laisser de la place au bouton complet
      plutôt que de le comprimer à côté du prix/note sur un écran étroit. */
-  .footer-bottom {
+  .card-footer-bottom {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;

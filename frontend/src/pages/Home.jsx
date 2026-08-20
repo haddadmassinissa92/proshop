@@ -144,14 +144,14 @@ const Home = () => {
 
               {/* Pied de la carte : prix, stock, évaluation, bouton panier */}
               <div className="card-footer">
-                <div className="footer-top">
+                <div className="card-footer-top">
                   <span className="price">{product.price.toLocaleString()} DA</span>
                   <span className={`stock-tag ${product.countInStock > 0 ? 'in-stock' : 'out-of-stock'}`}>
                     {product.countInStock > 0 ? `${product.countInStock} en stock` : 'Rupture de stock'}
                   </span>
                 </div>
                 
-                <div className="footer-bottom">
+                <div className="card-footer-bottom">
                   <div className="rating">
                     <FaStar className="star-icon" /> {product.rating} 
                     <span className="num-reviews">({product.numReviews})</span>
