@@ -32,35 +32,63 @@
 }
 
 /* --- BARRE DE RECHERCHE --- */
+/* Prend une largeur importante et se centre entre le logo et les actions
+   à droite, comme sur les sites marchands professionnels (Amazon, etc.) */
+.search-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 640px;
+}
+
 .search-box {
   display: flex;
   align-items: center;
-  background: #2d2d2d;
-  border-radius: 8px;
-  border: 1.4px solid #444;
-  padding: 2px 5px 2px 8px;
+  background: #ffffff;
+  border-radius: 999px;
+  border: none;
+  padding: 4px 4px 4px 20px;
   width: 100%;
-  max-width: 400px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.15s;
+}
+
+.search-box:focus-within {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
 }
 
 .search-input {
   background: transparent;
   border: none;
-  color: white;
-  padding: 5px;
+  color: #1e293b;
+  padding: 10px 8px;
   outline: none;
   width: 100%;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
 .search-btn {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: none;
+    width: 38px;
+    height: 38px;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #6366f1;
     border: none;
-    color: #9ca3af;
+    color: white;
     cursor: pointer;
+    transition: background 0.15s;
+}
+
+.search-btn:hover {
+  background: #4f46e5;
 }
 
 /* --- ACTIONS Droite depend de l'utilisateur --- */

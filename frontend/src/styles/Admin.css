@@ -81,14 +81,18 @@
 .modal-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .modal-header h1 { text-align: center;}
 
 .modal-header button {
-  width: 25px;
-  height: 25px;
+  width: 30px;
+  height: 30px;
+  aspect-ratio: 1;
+  padding: 0;
+  box-sizing: border-box;
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -97,11 +101,12 @@
   color: #ef4444;
   border: 1.3px solid #ef4444;
   border-radius: 50%;
+  line-height: 1;
 }
 
 .modal-content {
   background: white;
-  padding: 30px;
+  padding: 20px;
   border-radius: 12px;
   width: 500px;
   max-width: 95%;
@@ -109,21 +114,74 @@
 
 .form-row {
   display: flex;
-  gap: 15px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
 .modal-content input, .modal-content select, .modal-content textarea {
   width: 100%;
-  padding: 10px;
+  padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .modal-content textarea {
-  height: 160px;
+  height: 75px;
   resize: none;
+}
+
+/* Bloc de choix d'image dans les formulaires produit (Add/EditProductModal) :
+   aperçu carré à gauche, champ fichier stylé à droite. */
+.image-upload-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.image-upload-preview {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  flex-shrink: 0;
+}
+
+/* État avant sélection d'une image (AddProductModal) : icône placeholder
+   à la place d'une vraie image, dans le même cadre carré. */
+.image-upload-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a5b4fc;
+  font-size: 1.3rem;
+}
+
+.image-upload-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.image-upload-fields input[type="file"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.85rem;
+}
+
+.image-upload-hint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 6px;
 }
 
 .input-group textarea {
@@ -134,37 +192,11 @@
   width: 100%;
   background: #6366f1;
   color: white;
-  padding: 12px;
+  padding: 10px;
   border: none;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
-}
-
-.upload-container {
-  margin: 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.custom-file-upload {
-  border: 1px dashed #6366f1;
-  display: inline-block;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 8px;
-  color: #6366f1;
-  font-weight: bold;
-  background: #f8fafc;
-}
-
-.image-preview-small {
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
-  object-fit: cover;
-  border: 1px solid #ddd;
 }
 
 /* Styles de la page Dashboard */

@@ -55,6 +55,25 @@ const cartSlice = createSlice({
       localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
     },
 
+    // Action pour changer la quantité d'un article déjà dans le panier
+    // (boutons +/- dans CartSidebar.jsx — avant, il n'existait aucun moyen
+    // d'ajuster la quantité une fois l'article ajouté, seulement de le
+    // supprimer entièrement).
+    updateQuantity: (state, action) => {
+      const { id, quantity } = action.payload;
+      const item = state.cartItems.find((item) => item._id === id);
+      if (!item) return;
+
+      // Jamais en dessous de 1 (pour descendre à 0, on utilise removeFromCart,
+      // via le bouton supprimer dédié) et jamais au-dessus du stock réellement
+      // disponible pour ce produit — sinon le client pourrait commander plus
+      // que ce qu'on peut réellement lui livrer.
+      const max = item.countInStock ?? Infinity;
+      item.quantity = Math.max(1, Math.min(quantity, max));
+
+      localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
+    },
+
     // Action pour vider complètement le panier
     clearCart: (state) => {
       // Réinitialisation du tableau des articles
@@ -71,6 +90,7 @@ const cartSlice = createSlice({
 export const {
     addToCart,
     removeFromCart,
+    updateQuantity,
     clearCart
 } = cartSlice.actions
 

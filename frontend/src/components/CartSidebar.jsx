@@ -8,15 +8,17 @@ import React from 'react';
 // Import des actions de suppression d'un produit ou de 
 // vider le panier depuis le slice cart
 import { useSelector, useDispatch } from 'react-redux';
-import { removeFromCart, clearCart } from '../store/cartSlice';
+import { removeFromCart, updateQuantity, clearCart } from '../store/cartSlice';
 
 // Import de useNavigate pour naviguer vers d'autres pages
 import { useNavigate } from 'react-router-dom';
 
-// Import des icones FontAwesome pour les boutons (poubelle et croix)
+// Import des icones FontAwesome pour les boutons (poubelle, croix, +/-)
 import { 
     FaTrash, 
-    FaTimes 
+    FaTimes,
+    FaPlus,
+    FaMinus,
 } from 'react-icons/fa';
 
 // Import du fichier CSS pour les styles du composant
@@ -91,10 +93,33 @@ const CartSidebar = ({ isOpen, onClose }) => {
                   alt={item.name} 
                 />
                 
-                {/* Détails de l'article : nom et quantité x prix */}
+                {/* Détails de l'article : nom et sélecteur de quantité */}
                 <div className="item-details">
                   <h4>{item.name}</h4>
-                  <p>{item.quantity} x {item.price.toLocaleString()} DA</p>
+                  <p className="item-unit-price">{item.price.toLocaleString()} DA / unité</p>
+
+                  {/* Boutons +/- pour ajuster la quantité sans avoir à
+                      retirer puis rajouter l'article. Le reducer
+                      updateQuantity bloque déjà les valeurs hors limites
+                      (min 1, max le stock disponible), donc pas besoin de
+                      re-vérifier ici. */}
+                  <div className="quantity-selector">
+                    <button
+                      onClick={() => dispatch(updateQuantity({ id: item._id, quantity: item.quantity - 1 }))}
+                      disabled={item.quantity <= 1}
+                      aria-label="Diminuer la quantité"
+                    >
+                      <FaMinus />
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      onClick={() => dispatch(updateQuantity({ id: item._id, quantity: item.quantity + 1 }))}
+                      disabled={item.countInStock != null && item.quantity >= item.countInStock}
+                      aria-label="Augmenter la quantité"
+                    >
+                      <FaPlus />
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Bouton pour supprimer cet article du panier */}

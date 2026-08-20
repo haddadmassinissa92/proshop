@@ -159,15 +159,20 @@ const AddProductModal = ({ onClose, refreshProducts }) => {
           <input type="number" placeholder="Quantité en stock" required value={formData.countInStock}
             onChange={(e) => setFormData({...formData, countInStock: e.target.value})} />
 
-          {/* Section d'upload d'image */}
-          <div className="upload-container">
-            <label htmlFor="file-upload" className="custom-file-upload">
-              <FaCloudUploadAlt /> {imageFile ? "Image sélectionnée" : "Uploader l'image"}
-            </label>
-            <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} hidden />
-            
-            {/* Prévisualisation de l'image si sélectionnée */}
-            {preview && <img src={preview} alt="Aperçu" className="image-preview-small" />}
+          {/* Section d'upload d'image — même présentation que le modal de
+              modification (aperçu carré + champ fichier stylé côte à côte). */}
+          <div className="image-upload-block">
+            {preview ? (
+              <img src={preview} alt="Aperçu" className="image-upload-preview" />
+            ) : (
+              <div className="image-upload-preview image-upload-preview-empty">
+                <FaCloudUploadAlt />
+              </div>
+            )}
+            <div className="image-upload-fields">
+              <input type="file" accept="image/*" onChange={handleFileChange} />
+              <p className="image-upload-hint">Image obligatoire pour créer le produit.</p>
+            </div>
           </div>
 
           {/* Zone de texte pour la description */}
