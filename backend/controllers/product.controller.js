@@ -107,10 +107,15 @@ const getAllProducts = async (req, res) => {
         const { search, category, sort } = req.query
         let query = {} 
 
-        // Recherche par mot-clé dans le nom ou la description du produit (insensible à la casse).
+        // Recherche par mot-clé dans le nom, la marque ou la description du
+        // produit (insensible à la casse). La marque manquait avant — une
+        // recherche "logitech" ne trouvait donc jamais les produits de
+        // cette marque tant que le mot n'apparaissait pas aussi dans le nom
+        // ou la description.
         if (search && search.trim() !== '') {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
+                { brand: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } },
             ];
         }

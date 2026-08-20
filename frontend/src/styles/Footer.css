@@ -109,33 +109,29 @@
 }
 
 /* ===== RESPONSIVE MOBILE =====
-   Un seul palier, direct vers une colonne unique empilée (marque, puis
-   navigation, informations, contact chacune l'une sous l'autre) — plus
-   simple et plus fiable qu'un état intermédiaire à 2 colonnes, qui rendait
-   la mise en page bancale sur les écrans étroits. */
+   Colonne unique empilée, alignée à gauche (pas tout centré — plus près
+   d'une vraie liste de liens que d'une affiche), avec un fin séparateur
+   entre chaque section pour marquer clairement où l'une finit et l'autre
+   commence, sans avoir besoin du centrage pour créer cette hiérarchie. */
 @media (max-width: 700px) {
   .footer-top {
     grid-template-columns: 1fr;
-    padding: 36px 20px 24px;
-    gap: 28px;
-    text-align: center;
+    padding: 10px 24px 0;
+    gap: 0;
+  }
+
+  .footer-col,
+  .footer-brand {
+    padding: 22px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .footer-col:last-child {
+    border-bottom: none;
   }
 
   .footer-tagline {
     max-width: none;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .footer-payment-badges {
-    justify-content: center;
-  }
-
-  .footer-col ul {
-    align-items: center;
-  }
-
-  .footer-contact li {
-    justify-content: center;
   }
 }
+

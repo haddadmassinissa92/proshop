@@ -1,0 +1,165 @@
+/* About.css — page "À propos" : présentation de la boutique, ce qui la
+   différencie, et un point de contact clair. */
+
+.about-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+  color: #334155;
+}
+
+/* --- EN-TÊTE --- */
+.about-hero {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.about-hero h1 {
+  font-size: 2rem;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.about-hero p {
+  font-size: 1.05rem;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* --- SECTION TEXTE (mission / histoire) --- */
+.about-section {
+  margin-bottom: 50px;
+}
+
+.about-section h2 {
+  font-size: 1.3rem;
+  color: #1e293b;
+  margin-bottom: 14px;
+}
+
+.about-section p {
+  line-height: 1.75;
+  margin-bottom: 14px;
+}
+
+/* Texte à compléter par l'admin avant mise en ligne (même convention que
+   Legal.css / Footer.css pour les autres placeholders du site). */
+.about-placeholder {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* --- SIGNAUX DE CONFIANCE (grille de badges) --- */
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 50px;
+}
+
+.trust-card {
+  background: white;
+  border: 1px solid #eef2ff;
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.trust-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin: 0 auto 14px;
+}
+
+.trust-card h3 {
+  font-size: 1rem;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.trust-card p {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* --- ÉQUIPE (optionnel) --- */
+.about-team {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 50px;
+}
+
+.about-team-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #e2e8f0;
+}
+
+.about-team-info h3 {
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.about-team-info p {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* --- APPEL À L'ACTION CONTACT --- */
+.about-cta {
+  text-align: center;
+  background: #1a1a1a;
+  color: white;
+  border-radius: 14px;
+  padding: 40px 30px;
+}
+
+.about-cta h2 {
+  color: white;
+  margin-bottom: 10px;
+}
+
+.about-cta p {
+  color: #cbd5e1;
+  margin-bottom: 20px;
+}
+
+.about-cta-btn {
+  display: inline-block;
+  background: #6366f1;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.about-cta-btn:hover {
+  background: #4f46e5;
+}
+
+/* ===== RESPONSIVE MOBILE ===== */
+@media (max-width: 600px) {
+  .about-container { padding: 10px 16px 40px; }
+  .about-hero h1 { font-size: 1.5rem; }
+  .about-team { flex-direction: column; text-align: center; }
+}

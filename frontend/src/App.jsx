@@ -25,6 +25,7 @@ import OrderSuccess from './pages/OrderSuccess';
 import AdminOrders from './pages/AdminOrders';
 import MentionsLegales from './pages/MentionsLegales';
 import CGV from './pages/CGV';
+import AboutUs from './pages/AboutUs';
 
 
 // Importation useSelector pour accéder à l'état global, 
@@ -86,6 +87,7 @@ function App() {
           {/* Pages légales — accessibles à tous, connecté ou non */}
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/cgv" element={<CGV />} />
+          <Route path="/a-propos" element={<AboutUs />} />
 
           <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/" />} />
           <Route path="/login" element={!token ? <Login /> : <Navigate to="/" />} />

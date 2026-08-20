@@ -51,6 +51,7 @@ const Footer = () => {
         <div className="footer-col">
           <h4>Informations</h4>
           <ul>
+            <li><Link to="/a-propos">À propos</Link></li>
             <li><Link to="/mentions-legales">Mentions légales</Link></li>
             <li><Link to="/cgv">Conditions Générales de Vente</Link></li>
           </ul>
@@ -61,8 +62,8 @@ const Footer = () => {
         <div className="footer-col">
           <h4>Contact</h4>
           <ul className="footer-contact">
-            <li><FaEnvelope /> <span className="footer-placeholder">[hmassinissa39@gmail.com]</span></li>
-            <li><FaPhone /> <span className="footer-placeholder">[0552 76 74 06]</span></li>
+            <li><FaEnvelope /> <span className="footer-placeholder">[email de contact]</span></li>
+            <li><FaPhone /> <span className="footer-placeholder">[téléphone]</span></li>
           </ul>
         </div>
       </div>
