@@ -205,6 +205,45 @@
   }
 }
 
+@media (max-width: 600px) {
+  .product-detail-container { padding: 0 12px; margin: 20px auto; }
+
+  /* Sécurité supplémentaire contre tout débordement de l'image sur les
+     très petits écrans : elle ne doit jamais dépasser son conteneur, quelle
+     que soit sa proportion d'origine. */
+  .detail-image-section {
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .detail-image-section img {
+    max-height: 220px;
+    width: auto;
+  }
+
+  /* Le nom du produit peut être très long (référence complète type
+     "DELL VOS 3910-N i7-12700/4GB/512GB SSD/20" VGA+ DisplayPort") — une
+     taille de titre pensée pour desktop le fait prendre une place énorme
+     sur mobile. On réduit nettement en dessous de 600px. */
+  .detail-info-section h1 {
+    font-size: 1.3rem;
+    line-height: 1.3;
+  }
+
+  .price-tag { font-size: 1.5rem; }
+
+  .specs-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .add-btn-main {
+    padding: 14px;
+    font-size: 0.9rem;
+  }
+}
+
 /* --- NOTE MOYENNE (sous le nom du produit) --- */
 .rating-summary {
   display: flex;

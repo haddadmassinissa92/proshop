@@ -146,7 +146,7 @@ const ProductDetails = () => {
               </div>
               {/* Carte graphique */}
               <div className="spec-item">
-                <strong>Carte Graphique:</strong><BsGpuCard/> <span> {product.specs?.gpu || 'N/A'}</span>
+                <strong>Carte Graphique:</strong> <span><BsGpuCard/> {product.specs?.gpu || 'N/A'}</span>
               </div>
             </div>
           </div>
