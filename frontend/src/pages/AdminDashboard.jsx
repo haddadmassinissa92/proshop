@@ -19,7 +19,11 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ totalProducts: 0, totalStock: 0, totalValue: 0 })
   const [chartData, setChartData] = useState([])
   const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+  // Le premier élément (loading) n'est jamais lu dans ce composant — seul
+  // setLoading sert (pour arrêter l'indicateur de chargement une fois les
+  // données arrivées). On l'omet de la destructuration plutôt que de
+  // laisser une variable déclarée mais jamais utilisée.
+  const [, setLoading] = useState(true)
 
   // la redirection
   const navigate = useNavigate();

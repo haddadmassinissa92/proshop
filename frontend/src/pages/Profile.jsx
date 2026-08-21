@@ -2,7 +2,7 @@
 
 // Import de React et des bibliothèques React nécessaires
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 // Import des icônes utilisées dans l'interface
 import { FaUser, FaEnvelope, FaIdBadge, FaQuoteLeft } from 'react-icons/fa';
@@ -16,10 +16,8 @@ import { getMediaUrl } from '../api/api';
 
 const Profile = () => {
   // Récupération des informations utilisateur depuis le state auth de Redux
-  // État local pour stocker éventuellement la biographie de l'utilisateur
   // État pour contrôler l'ouverture/fermeture du modal de modification
   const { user } = useSelector((state) => state.auth);
-  const [bio, setBio] = useState(user?.bio || "");
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fonction pour générer l'URL de l'avatar à afficher

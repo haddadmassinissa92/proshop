@@ -97,7 +97,7 @@ const EditProfileModal = ({ user, onClose }) => {
                     <div className="edit-avatar-section">
                         <label htmlFor="avatar-edit" className="avatar-edit-label">
                             <img 
-                                src={getAvatarSrc()} 
+                                src={preview || getAvatarSrc()} 
                                 alt="Preview" 
                             />
                             <div className="camera-icon"><FaCamera /></div>

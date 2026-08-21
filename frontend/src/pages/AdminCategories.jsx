@@ -141,6 +141,7 @@ const AdminCategories = () => {
       const { data } = await axios.get(`${API_URL}/api/categories/${cat._id}`);
       setViewingCategory(data);
     } catch (err) {
+      console.error("Erreur lors du chargement des produits de la catégorie:", err);
       alert("Impossible de charger les produits de cette catégorie.");
     }
   };

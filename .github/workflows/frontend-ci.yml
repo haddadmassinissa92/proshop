@@ -60,4 +60,4 @@ jobs:
           # Valeur de secours pour que le build réussisse en CI, où la vraie
           # URL du backend n'a pas de sens — c'est le seul but ici (vérifier
           # que "npm run build" ne plante pas), pas de faire tourner l'app.
-          VITE_API_URL: https://example.com
+          VITE_API_URL: http://localhost:3000

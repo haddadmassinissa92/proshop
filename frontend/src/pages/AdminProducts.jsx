@@ -45,6 +45,9 @@ const AdminProducts = () => {
 
   // useEffect pour exécuter fetchProducts au montage du composant
   useEffect(() => {
+    // (react-hooks/set-state-in-effect désactivée globalement dans
+    // eslint.config.js — ce pattern setState-après-await déclenchait cette
+    // règle de façon incohérente, voir le commentaire là-bas.)
     fetchProducts();
   }, []);
 

@@ -108,6 +108,12 @@ const PlaceOrder = () => {
       setRedirecting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.post(`${API_URL}/api/payments/cib/register/${res._id}`, {}, config);
+      // faux positif documenté et reconnu de cette règle sur ce pattern
+      // précis (redirection via window.location.href dans un gestionnaire
+      // async, voir github.com/facebook/react/issues/34776 et #35158) :
+      // ce n'est pas une mutation d'état React, juste une navigation
+      // navigateur standard.
+      // eslint-disable-next-line react-hooks/immutability
       window.location.href = data.formUrl;
 
     } catch (err) {

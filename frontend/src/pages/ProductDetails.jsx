@@ -50,6 +50,11 @@ const ProductDetails = () => {
 
   useEffect(() => {
     fetchProduct();
+    // volontaire : fetchProduct est redéfinie à chaque rendu, l'ajouter aux
+    // dépendances ferait tourner l'effet en boucle. On ne veut le relancer
+    // que quand "id" change (navigation vers un autre produit) — déjà
+    // correctement déclaré ci-dessous (le warning pointe vers cette ligne).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Est-ce que l'utilisateur connecté a déjà laissé un avis sur ce produit ?

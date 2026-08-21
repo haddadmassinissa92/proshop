@@ -48,7 +48,14 @@ const AdminOrders = () => {
 
   // useEffect pour exécuter fetchOrders au montage du composant
   useEffect(() => {
+    // (react-hooks/set-state-in-effect désactivée globalement dans
+    // eslint.config.js pour ce pattern — voir le commentaire là-bas.)
     fetchOrders();
+    // exhaustive-deps : volontaire, on ne veut récupérer les commandes
+    // qu'une seule fois au montage — ajouter fetchOrders aux dépendances
+    // la ferait tourner en boucle (redéfinie à chaque rendu). Le warning
+    // pointe vers cette ligne du tableau de dépendances, pas vers l'appel.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fonction pour marquer une commande comme livrée
