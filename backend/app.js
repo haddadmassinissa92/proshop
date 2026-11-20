@@ -35,6 +35,12 @@ const errorHandler = require('./middlewares/error.middleware');
 
 const app = express();
 
+// Derrière le proxy d'un hébergeur (Render, Railway...), sans cette ligne
+// Express voit l'IP du proxy pour TOUS les clients : le limiteur de requêtes
+// les traiterait comme un seul visiteur. "1" = on fait confiance à un seul
+// proxy (celui de l'hébergeur).
+app.set('trust proxy', 1);
+
 // --- SECURITÉ ---
 app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
@@ -59,9 +65,15 @@ app.use(cors({
 
 // --- MIDDLEWARES STANDARDS ---
 app.use(morgan('dev'));
-app.post('/api/payments/chargily/webhook', 
-    express.raw({ type: 'application/json' }), 
-    chargilyWebhook);
+
+// Webhook Chargily : il doit recevoir le corps BRUT de la requête (Buffer) pour
+// que la signature puisse être vérifiée. Il est donc monté AVANT
+// express.json(), qui transformerait le corps et ferait échouer la vérification.
+app.post(
+    '/api/payments/chargily/webhook',
+    express.raw({ type: 'application/json' }),
+    chargilyWebhook
+);
 
 // 1mb au lieu de 10kb : une commande avec plusieurs articles peut dépasser
 // 10kb et se faisait rejeter avant.
@@ -81,7 +93,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', orderRoutes)
-app.use('/api/payments/chargily', chargilyRoutes);
+app.use('/api/payments/chargily', chargilyRoutes)
 app.use('/api/payments', paymentRoutes)
 
 // Limite dédiée, plus stricte, pour l'assistant IA : le compte gratuit Groq

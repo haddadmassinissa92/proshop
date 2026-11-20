@@ -1,82 +1,110 @@
 // controllers/order.controller.js
 
+const mongoose = require('mongoose');
+
 // Importation des modèles nécessaires pour les opérations sur les commandes et produits
 const Order = require('../models/order.model');
 const Product = require('../models/product.model');
 const User = require('../models/user.model');
 const { sendOrderConfirmationEmail } = require('../utils/email');
+const { releaseStock } = require('../utils/stock');
 
 
 const addOrderItems = async (req, res) => {
     /**
-     * Fonction pour créer une nouvelle commande avec les articles du panier.
+     * Créer une commande pour l'utilisateur connecté.
+     *
+     * RÈGLE DE SÉCURITÉ : on ne fait JAMAIS confiance aux prix envoyés par le
+     * frontend. Le client n'envoie que "quel produit" et "combien" ; le nom, le
+     * prix unitaire, le total et le stock sont lus et calculés ici, depuis la
+     * base de données. Sinon n'importe qui pourrait payer une commande 1 DA en
+     * modifiant la requête (le montant envoyé à la passerelle de paiement vient
+     * de order.totalPrice).
      *
      * Étapes :
-     * Tout d'abord essayer:
-     *      1. Extraire les données de la commande depuis le corps de la requête (orderItems, shippingAddress, paymentMethod, itemsPrice, taxPrice, shippingPrice, totalPrice).
-     *      2. Vérifier que le panier n'est pas vide.
+     *      1. Vérifier que le panier est un tableau non vide.
+     *      2. Pour chaque article : valider l'identifiant et la quantité, puis
+     *         RÉSERVER le stock en une seule opération atomique (décrément
+     *         conditionnel : deux clients ne peuvent plus acheter le dernier
+     *         article en même temps).
+     *      3. Calculer le total à partir des prix de la base.
+     *      4. Enregistrer la commande. Si une étape échoue, le stock déjà
+     *         réservé est remis en place.
      *
-     * Si le panier est vide:
-     *      3. Renvoyer un status 400 avec un message indiquant qu'aucun article n'est présent dans la commande.
-     *
-     * Sinon, si le panier contient des articles:
-     *      4. Créer une nouvelle commande avec l'utilisateur connecté et les données fournies.
-     *      5. Enregistrer la commande dans la base de données.
-     *      6. Mettre à jour le stock des produits commandés en décrémentant countInStock.
-     *      7. Renvoyer la commande créée avec un status 201.
-     *
-     * Sinon en cas d'erreur serveur:
-     *      8. Afficher l'erreur dans la console pour le développement.
-     *      9. Renvoyer une réponse 500 avec un message d'erreur.
+     * Stock et paiement par carte : le stock est réservé dès la création. Si le
+     * client n'achève jamais le paiement, utils/orderCleanup.js annule la
+     * commande après un délai et remet le stock.
      *
      * @desc Créer une commande pour l'utilisateur connecté.
      * @route POST /api/orders
      */
 
-    // Extraction des données de la commande depuis le corps de la requête
-    const {
-        orderItems,      // Tableau des articles commandés
-        shippingAddress, // Adresse de livraison
-        paymentMethod,   // Méthode de paiement
-        itemsPrice,      // Prix des articles
-        taxPrice,        // Montant de la TVA
-        shippingPrice,   // Frais de livraison
-        totalPrice,      // Prix total
-    } = req.body;
+    // On ignore volontairement itemsPrice / taxPrice / shippingPrice /
+    // totalPrice envoyés par le frontend : ils sont recalculés plus bas.
+    const { orderItems, shippingAddress, paymentMethod } = req.body;
+
+    // Articles dont le stock est déjà réservé, pour pouvoir tout annuler.
+    const reserved = [];
+    let orderSaved = false;
+
+    // Remet le stock réservé en place puis répond avec l'erreur.
+    const fail = async (status, message) => {
+        await releaseStock(reserved);
+        return res.status(status).json({ message });
+    };
 
     try {
-        // Vérification que le panier n'est pas vide
-        if (!orderItems || orderItems.length === 0) {
+        if (!Array.isArray(orderItems) || orderItems.length === 0) {
             return res.status(400).json({ message: 'Aucun article dans la commande' });
         }
 
-        // Vérification du stock disponible AVANT de créer la commande —
-        // sans ça, on pouvait commander plus d'articles qu'il n'y en a en stock
-        // et countInStock devenait négatif.
-        //
-        // NB : chaque article doit avoir un champ "product" (l'ObjectId du produit) —
-        // c'est le nom attendu par orderItemSchema (voir models/order.model.js).
-        // Avant, le frontend envoyait seulement "_id" et ce champ "product" n'était
-        // jamais rempli, ce qui faisait échouer la validation Mongoose au moment du
-        // order.save() (le champ product est "required").
+        const verifiedItems = [];
+        let itemsPrice = 0;
+
         for (const item of orderItems) {
-            if (!item.product) {
-                return res.status(400).json({ message: 'Chaque article doit avoir un identifiant de produit valide.' });
+            if (!item.product || !mongoose.isValidObjectId(item.product)) {
+                return await fail(400, 'Chaque article doit avoir un identifiant de produit valide.');
             }
-            const product = await Product.findById(item.product);
+            if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+                return await fail(400, 'La quantité de chaque article doit être un entier supérieur ou égal à 1.');
+            }
+
+            // Réservation atomique : le décrément n'a lieu que s'il reste assez
+            // de stock au moment précis de l'opération.
+            const product = await Product.findOneAndUpdate(
+                { _id: item.product, countInStock: { $gte: item.quantity } },
+                { $inc: { countInStock: -item.quantity } },
+                { new: true }
+            );
+
             if (!product) {
-                return res.status(404).json({ message: `Produit introuvable (${item.product}).` });
+                // Produit introuvable ou stock insuffisant : on précise lequel.
+                const existing = await Product.findById(item.product);
+                if (!existing) {
+                    return await fail(404, `Produit introuvable (${item.product}).`);
+                }
+                return await fail(400, `Stock insuffisant pour "${existing.name}" (${existing.countInStock} disponible(s), ${item.quantity} demandé(s)).`);
             }
-            if (product.countInStock < item.quantity) {
-                return res.status(400).json({ 
-                    message: `Stock insuffisant pour "${product.name}" (${product.countInStock} disponible(s), ${item.quantity} demandé(s)).` 
-                });
-            }
+
+            reserved.push({ product: product._id, quantity: item.quantity });
+            itemsPrice += product.price * item.quantity;
+            verifiedItems.push({
+                product: product._id,
+                name: product.name,
+                quantity: item.quantity,
+                image: product.images && product.images[0] ? product.images[0] : item.image,
+                price: product.price, // prix de la base, pas celui du frontend
+            });
         }
 
-        // Création d'une nouvelle instance de commande avec les données fournies
+        // Pas de TVA ni de frais de livraison pour l'instant (comme dans le
+        // récapitulatif affiché côté frontend). Si ça change, c'est ICI.
+        const taxPrice = 0;
+        const shippingPrice = 0;
+        const totalPrice = itemsPrice + taxPrice + shippingPrice;
+
         const order = new Order({
-            orderItems,
+            orderItems: verifiedItems,
             user: req.user.id, // ID de l'utilisateur connecté (ajouté par le middleware d'auth)
             shippingAddress,
             paymentMethod,
@@ -86,32 +114,17 @@ const addOrderItems = async (req, res) => {
             totalPrice,
         });
 
-        // Sauvegarde de la commande dans la base de données
         const createdOrder = await order.save();
+        orderSaved = true;
 
-        // MISE À JOUR DU STOCK
-        // Réduction de la quantité en stock pour chaque article commandé
-        for (const item of orderItems) {
-            await Product.findByIdAndUpdate(item.product, {
-                $inc: { countInStock: -item.quantity } // Décrémente le stock de la quantité commandée
-            });
-        }
-
-        // Réponse avec la commande créée et un statut 201 (Created)
         res.status(201).json(createdOrder);
 
         // Email de confirmation — uniquement pour "Paiement à la livraison",
-        // qui est confirmé immédiatement (pas d'étape de paiement en ligne
-        // à attendre). Pour la carte CIB/Edahabia, l'email est envoyé après
-        // confirmation réelle du paiement (voir payment.controller.js ->
-        // cibReturn), pas avant.
-        //
-        // Placé APRÈS res.status(201).json(...) et sans "await" : la réponse
-        // HTTP part immédiatement, sans attendre l'envoi de l'email (qui
-        // peut prendre une seconde ou deux) — le client n'a pas à patienter
-        // pour ça, et un email lent/en échec ne doit jamais faire échouer
-        // la commande elle-même.
-        if (paymentMethod === 'Paiement à la livraison') {
+        // confirmé immédiatement. Pour la carte, l'email part après la
+        // confirmation réelle du paiement (voir chargily.controller.js ->
+        // chargilyWebhook). Placé APRÈS la réponse et sans "await" : un email
+        // lent ou en échec ne doit jamais faire échouer la commande.
+        if (createdOrder.paymentMethod === 'Paiement à la livraison') {
             User.findById(req.user.id)
                 .then(user => {
                     if (user) {
@@ -126,7 +139,10 @@ const addOrderItems = async (req, res) => {
         }
 
     } catch (error) {
-        // Gestion des erreurs avec un message et le détail de l'erreur
+        // La commande n'a pas été enregistrée : on libère le stock réservé.
+        if (!orderSaved) {
+            await releaseStock(reserved).catch(err => console.error('[stock] Impossible de remettre le stock en place:', err.message));
+        }
         res.status(500).json({
             message: 'Erreur lors de la création de la commande',
             error: error.message

@@ -6,10 +6,19 @@
 // cas, elle se contente d'afficher le récapitulatif tel quel.
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import { FaCheckCircle, FaBoxOpen } from 'react-icons/fa';
 import { API_URL, getMediaUrl } from '../api/api';
+import { clearCart } from '../store/cartSlice';
+
+// Après un paiement par carte, c'est le webhook de Chargily qui confirme la
+// commande côté serveur : il peut arriver quelques secondes APRÈS le retour du
+// client sur cette page. On relit donc la commande toutes les 2 secondes, au
+// plus 10 fois (20 s), tant qu'elle n'est pas marquée payée.
+const POLL_INTERVAL_MS = 2000;
+const POLL_MAX_ATTEMPTS = 10;
+const CARD_METHOD = 'Carte CIB/Edahabia';
 
 const OrderSuccess = () => {
     const { id } = useParams(); // Récupère l'ID de la commande depuis l'URL
@@ -19,29 +28,60 @@ const OrderSuccess = () => {
     // et un titre neutre quand la page est rouverte depuis l'historique.
     const isFreshOrder = searchParams.get('new') === '1';
     const { token } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
 
     const [order, setOrder] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!id || !token) return;
+
+        let cancelled = false;
+        let timer;
+        let attempts = 0;
+
         const fetchOrder = async () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${token}` } };
                 const { data } = await axios.get(`${API_URL}/api/orders/${id}`, config);
+                if (cancelled) return;
                 setOrder(data);
+                setError(null);
+
+                // Paiement par carte pas encore confirmé : on réessaie un peu plus tard.
+                if (isFreshOrder && data.paymentMethod === CARD_METHOD && !data.isPaid && attempts < POLL_MAX_ATTEMPTS) {
+                    attempts += 1;
+                    timer = setTimeout(fetchOrder, POLL_INTERVAL_MS);
+                }
             } catch (err) {
+                if (cancelled) return;
                 console.error("Erreur lors du chargement de la commande :", err);
                 setError(err.response?.data?.message || "Impossible de charger le récapitulatif de la commande.");
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
-        if (id && token) {
-            fetchOrder();
+        fetchOrder();
+
+        // Nettoyage : on arrête l'attente si le client quitte la page.
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [id, token, isFreshOrder]);
+
+    // Le panier n'est vidé qu'une fois le paiement par carte CONFIRMÉ : si le
+    // paiement échoue, le client retrouve son panier. (?new=1 évite de vider le
+    // panier courant quand on rouvre simplement une ancienne commande.)
+    useEffect(() => {
+        if (isFreshOrder && order?.paymentMethod === CARD_METHOD && order?.isPaid) {
+            dispatch(clearCart());
         }
-    }, [id, token]);
+    }, [isFreshOrder, order, dispatch]);
+
+    const waitingForPayment = isFreshOrder && order?.paymentMethod === CARD_METHOD && !order?.isPaid;
 
     return (
         <div style={{ maxWidth: '700px', margin: '0 auto', padding: '50px 20px', fontFamily: 'sans-serif' }}>
@@ -55,7 +95,9 @@ const OrderSuccess = () => {
                             : "Le paiement sera confirmé " +
                               (order.paymentMethod === 'Paiement à la livraison'
                                 ? "à la réception (paiement à la livraison)."
-                                : "dès sa réception."))
+                                : waitingForPayment
+                                    ? "dès que la banque nous le confirme (quelques instants). Si rien ne change, rafraîchissez la page."
+                                    : "dès sa réception."))
                         : ""}
                 </p>
             </div>

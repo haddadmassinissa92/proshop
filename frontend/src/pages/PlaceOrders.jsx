@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 // Import de useNavigate pour naviguer vers d'autres pages 
 // et de Link pour navigation React Router (liens connexion)
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 
 // Import d'axios pour l'appel direct à la route de paiement CIB/Edahabia
 // (qui ne passe pas par le slice Redux "order")
@@ -33,6 +33,13 @@ const PAYMENT_METHODS = [
   { value: 'Carte CIB/Edahabia', label: 'Carte CIB / Edahabia', icon: <FaCreditCard /> },
 ];
 
+// Cartes proposées pour le paiement en ligne. Les valeurs sont celles attendues
+// par le backend (champ "card" de /api/payments/chargily/checkout/:orderId).
+const CARDS = [
+  { value: 'edahabia', label: 'Edahabia (Algérie Poste)' },
+  { value: 'cib', label: 'CIB (carte bancaire)' },
+];
+
 // Définition du composant PlaceOrder pour la page 
 // de confirmation de commande
 const PlaceOrder = () => {
@@ -52,6 +59,12 @@ const PlaceOrder = () => {
   const [paymentMethod, setPaymentMethod] = useState('Paiement à la livraison');
   const [paymentError, setPaymentError] = useState(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [card, setCard] = useState('edahabia');
+
+  // Chargily nous renvoie ici avec ?payment=failed si le paiement a échoué
+  // ou a été annulé : on l'explique au client au lieu de ne rien afficher.
+  const [searchParams] = useSearchParams();
+  const paymentFailed = searchParams.get('payment') === 'failed';
 
   // Récupération de l'adresse d'expédition stockée dans le localStorage depuis l'étape précédente
   // et le subtotal
@@ -91,23 +104,22 @@ const PlaceOrder = () => {
       const res = await dispatch(createOrder(orderData)).unwrap();
       if (!res || !res._id) return;
 
-      // La commande est créée en base : le panier a rempli son rôle, on le
-      // vide maintenant (et pas sur la page de confirmation, qui sert aussi
-      // à revoir d'anciennes commandes depuis l'historique — le vider
-      // là-bas effacerait le panier courant à chaque simple consultation).
-      dispatch(clearCart());
-
       if (paymentMethod === 'Paiement à la livraison') {
-        // Rien à payer en ligne : la commande est confirmée directement.
+        // Rien à payer en ligne : la commande est confirmée directement,
+        // le panier a rempli son rôle et on le vide.
+        dispatch(clearCart());
         navigate(`/order/${res._id}?new=1`);
         return;
       }
 
-      // Carte CIB/Edahabia : on enregistre le paiement auprès de SATIM
-      // puis on redirige le client vers leur page de paiement sécurisée.
+      // Carte EDAHABIA / CIB : on NE vide PAS le panier ici. Si le paiement
+      // échoue, le client doit retrouver son panier. Il sera vidé sur la page
+      // de commande (OrderSuccess.jsx) une fois le paiement confirmé.
+      // On crée la session de paiement Chargily puis on redirige le client
+      // vers leur page de paiement sécurisée.
       setRedirecting(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const { data } = await axios.post(`${API_URL}/api/payments/chargily/checkout/${res._id}`, {}, config);
+      const { data } = await axios.post(`${API_URL}/api/payments/chargily/checkout/${res._id}`, { card }, config);
       // faux positif documenté et reconnu de cette règle sur ce pattern
       // précis (redirection via window.location.href dans un gestionnaire
       // async, voir github.com/facebook/react/issues/34776 et #35158) :
@@ -172,6 +184,27 @@ const PlaceOrder = () => {
                 </label>
               ))}
             </div>
+
+            {/* Choix de la carte, seulement si le paiement en ligne est choisi */}
+            {paymentMethod === 'Carte CIB/Edahabia' && (
+              <div className="payment-methods-list" style={{ marginTop: '10px' }}>
+                {CARDS.map((c) => (
+                  <label
+                    key={c.value}
+                    className={`payment-method-option ${card === c.value ? 'selected' : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="card"
+                      value={c.value}
+                      checked={card === c.value}
+                      onChange={(e) => setCard(e.target.value)}
+                    />
+                    <span>{c.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Bloc d'informations sur les articles commandés */}
@@ -228,6 +261,12 @@ const PlaceOrder = () => {
             <span>Total :</span>
             <span>{subtotal.toLocaleString()} DA</span>
           </div>
+
+          {paymentFailed && !paymentError && (
+            <p style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '10px' }}>
+              Le paiement n'a pas abouti ou a été annulé. Votre panier est conservé, vous pouvez réessayer.
+            </p>
+          )}
 
           {paymentError && (
             <p style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '10px' }}>{paymentError}</p>

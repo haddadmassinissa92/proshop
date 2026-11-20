@@ -128,6 +128,16 @@ const chargilyWebhook = async (req, res) => {
                 return res.sendStatus(200);
             }
 
+            // Cas rare : la commande a déjà été annulée automatiquement (paiement
+            // jamais terminé dans le délai, voir utils/orderCleanup.js) mais le
+            // client a fini par payer. Son stock a été remis en vente : on
+            // enregistre le paiement SANS réactiver la commande, et on alerte
+            // pour un traitement manuel (remboursement ou recréation).
+            const wasCancelled = order.status === 'Annulée';
+            if (wasCancelled) {
+                console.error(`[chargily] ALERTE : paiement reçu pour la commande annulée ${order._id} — traitement manuel nécessaire.`);
+            }
+
             // Mise à jour atomique : si le webhook arrive deux fois, une seule
             // des deux requêtes trouve la commande avec isPaid:false.
             const paidOrder = await Order.findOneAndUpdate(
@@ -136,7 +146,7 @@ const chargilyWebhook = async (req, res) => {
                     $set: {
                         isPaid: true,
                         paidAt: new Date(),
-                        status: 'Confirmée',
+                        status: wasCancelled ? 'Annulée' : 'Confirmée',
                         'paymentResult.status': 'paid',
                         'paymentResult.update_time': new Date().toISOString(),
                     },
@@ -144,7 +154,7 @@ const chargilyWebhook = async (req, res) => {
                 { new: true }
             );
 
-            if (paidOrder) {
+            if (paidOrder && !wasCancelled) {
                 // Sans "await" : n'empêche jamais de répondre 200 à Chargily.
                 User.findById(paidOrder.user)
                     .then((user) => {
