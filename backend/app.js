@@ -26,6 +26,8 @@ const productsRoutes = require('./routes/product.routes');
 const categoriesRoutes = require('./routes/category.routes');
 const orderRoutes = require('./routes/order.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const chargilyRoutes = require('./routes/chargily.routes');
+const { chargilyWebhook } = require('./controllers/chargily.controller');
 const assistantRoutes = require('./routes/assistant.routes');
 
 // Gestionnaire d'erreurs centralisé (voir middlewares/error.middleware.js)
@@ -57,6 +59,9 @@ app.use(cors({
 
 // --- MIDDLEWARES STANDARDS ---
 app.use(morgan('dev'));
+app.post('/api/payments/chargily/webhook', 
+    express.raw({ type: 'application/json' }), 
+    chargilyWebhook);
 
 // 1mb au lieu de 10kb : une commande avec plusieurs articles peut dépasser
 // 10kb et se faisait rejeter avant.
@@ -76,6 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/orders', orderRoutes)
+app.use('/api/payments/chargily', chargilyRoutes);
 app.use('/api/payments', paymentRoutes)
 
 // Limite dédiée, plus stricte, pour l'assistant IA : le compte gratuit Groq
